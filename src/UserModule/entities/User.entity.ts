@@ -24,7 +24,7 @@ export class User {
     @ApiProperty()
     prenom: string;
 
-    @Column({ unique: true })
+    @Column({ unique: true, nullable: true })
     @ApiProperty({ description: 'Identifiant du badge du technicien (scan)' })
     badgeId: string;
 

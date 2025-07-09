@@ -18,13 +18,14 @@ export class CreateUserDto {
 
     @ApiProperty({description: "prenom de l'utilisateur"})
     @IsString()
-    pernom:string;
+    prenom:string;
 
     @ApiProperty({ description: 'UUID du rôle' })
     @IsUUID()
     roleId: string;
 
     @ApiProperty({ description: 'ID badge unique du technicien' })
+    @IsOptional()
     @IsString()
-    badgeId: string;
+    badgeId?: string;
 }

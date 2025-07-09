@@ -21,6 +21,8 @@ export class UserService {
         const user = this.userRepo.create({
             username: dto.username,
             password: dto.password ? await bcrypt.hash(dto.password, 10) : undefined,
+            nom:dto.nom,
+            prenom:dto.prenom,
             role,
             badgeId: dto.badgeId,
         });

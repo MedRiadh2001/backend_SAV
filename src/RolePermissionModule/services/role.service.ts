@@ -43,7 +43,9 @@ export class RoleService {
         if (dto.permissionIds?.length) {
             const permissions = await this.permissionRepository.find({
                 where: { id: In(dto.permissionIds) },
+                relations: ['mainPermission'],
             });
+            this.validatePermissionDependencies(permissions);
 
             const rolePermissions = permissions.map((perm) =>
                 this.rolePermissionRepository.create({ role: savedRole, permission: perm })
@@ -77,17 +79,26 @@ export class RoleService {
 
         const role = await this.roleRepository.findOneBy({ id });
         if (!role) throw new NotFoundException('Role not found');
+
         role.name = dto.name;
         await this.roleRepository.save(role);
 
-        await this.rolePermissionRepository.delete({ role: { id } });
-        const permissions = await this.permissionRepository.find({
-            where: { id: In(dto.permissionIds) },
-        });
-        const rolePermissions = permissions.map((perm) =>
-            this.rolePermissionRepository.create({ role, permission: perm })
-        );
-        await this.rolePermissionRepository.save(rolePermissions);
+        if (dto.permissionIds?.length) {
+            await this.rolePermissionRepository.delete({ role: { id } });
+
+            const permissions = await this.permissionRepository.find({
+                where: { id: In(dto.permissionIds) },
+                relations: ['mainPermission'],
+            });
+
+            this.validatePermissionDependencies(permissions);
+
+            const rolePermissions = permissions.map((perm) =>
+                this.rolePermissionRepository.create({ role, permission: perm })
+            );
+
+            await this.rolePermissionRepository.save(rolePermissions);
+        }
 
         return this.findById(id);
     }
@@ -104,7 +115,9 @@ export class RoleService {
 
         const newPermissions = await this.permissionRepository.find({
             where: { id: In(dto.permissionIds.filter(id => !existingPermissionIds.includes(id))) },
+            relations: ['mainPermission'],
         });
+        this.validatePermissionDependencies([...role.rolePermissions.map(rp => rp.permission), ...newPermissions]);
 
         const newRolePermissions = newPermissions.map((perm) =>
             this.rolePermissionRepository.create({ role, permission: perm }),
@@ -123,5 +136,22 @@ export class RoleService {
 
         await this.roleRepository.delete(id);
         return { deleted: true };
+    }
+
+    private validatePermissionDependencies(permissions: Permission[]) {
+        const permissionIds = permissions.map(p => p.id);
+        const errors: string[] = [];
+
+        for (const perm of permissions) {
+            if (perm.mainPermission && !permissionIds.includes(perm.mainPermission.id)) {
+                errors.push(
+                    `Secondary permission "${perm.name}" requires its main permission "${perm.mainPermission.name}" to be included.`,
+                );
+            }
+        }
+
+        if (errors.length > 0) {
+            throw new BadRequestException(errors.join(' '));
+        }
     }
 }
