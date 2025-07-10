@@ -62,7 +62,7 @@ export class PermissionService {
     async findAll() {
         try {
             return await this.permissionRepository.find({
-                relations: ['mainPermission'],
+                relations: ['secondaryPermission'],
             });
         } catch (error) {
             if (error instanceof HttpException) {
@@ -76,7 +76,7 @@ export class PermissionService {
         try {
             const permission = await this.permissionRepository.findOne({
                 where: { id },
-                relations: ['mainPermission'],
+                relations: ['secondaryPermission'],
             });
             if (!permission) throw new NotFoundException('Permission not found');
             return permission;
