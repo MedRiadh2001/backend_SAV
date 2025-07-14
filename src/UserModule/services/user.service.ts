@@ -6,6 +6,7 @@ import { User } from '../entities/User.entity';
 import { CreateUserDto } from '../types/dto/create_user.dto';
 import { UpdateUserDto } from '../types/dto/update_user.dto';
 import * as bcrypt from 'bcryptjs';
+import { UserStatus } from '../types/enums/UserStatus.enum';
 
 @Injectable()
 export class UserService {
@@ -21,18 +22,28 @@ export class UserService {
         const user = this.userRepo.create({
             username: dto.username,
             password: dto.password ? await bcrypt.hash(dto.password, 10) : undefined,
-            nom:dto.nom,
-            prenom:dto.prenom,
+            nom: dto.nom,
+            prenom: dto.prenom,
             role,
             badgeId: dto.badgeId,
         });
         return this.userRepo.save(user);
     }
 
-    findAll() {
-        return this.userRepo.find({
+    async findAll(page = 1, limit = 10) {
+        const [data, total] = await this.userRepo.findAndCount({
+            where: { statut: UserStatus.ACTIF },
             relations: ['role', 'role.rolePermissions', 'role.rolePermissions.permission'],
+            skip: (page - 1) * limit,
+            take: limit,
         });
+
+        return {
+            data,
+            total,
+            page,
+            lastPage: Math.ceil(total / limit),
+        };
     }
 
     async findOne(id: string) {
@@ -50,12 +61,15 @@ export class UserService {
         const role = await this.roleRepo.findOneBy({ id: dto.roleId });
         user.username = dto.username;
         user.role = role;
-        user.badgeId = dto.badgeId;
         return this.userRepo.save(user);
     }
 
     async remove(id: string) {
-        return this.userRepo.delete(id);
+        const user = await this.userRepo.findOneBy({ id });
+        if (!user) throw new NotFoundException('Utilisateur non trouvé');
+
+        user.statut = UserStatus.INACTIF;
+        return this.userRepo.save(user);
     }
 
     async findByUsername(username: string) {

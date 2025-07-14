@@ -1,5 +1,5 @@
-import { Controller, Post, Get, Param, Patch, Delete, Body } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Controller, Post, Get, Param, Patch, Delete, Body, ParseUUIDPipe, Query } from '@nestjs/common';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { UserService } from '../services/user.service';
 import { CreateUserDto } from '../types/dto/create_user.dto';
 import { UpdateUserDto } from '../types/dto/update_user.dto';
@@ -17,31 +17,27 @@ export class UserController {
 
     @Get()
     @ApiOperation({ summary: 'Lister tous les utilisateurs' })
-    findAll() {
-        return this.userService.findAll();
+    @ApiQuery({ name: 'page', required: false })
+    @ApiQuery({ name: 'limit', required: false })
+    findAll(@Query('page') page?: number, @Query('limit') limit?: number) {
+        return this.userService.findAll(page, limit);
     }
 
     @Get(':id')
     @ApiOperation({ summary: 'Touver un utilisateur par ID' })
-    findOne(@Param('id') id: string) {
+    findOne(@Param('id', new ParseUUIDPipe()) id: string) {
         return this.userService.findOne(id);
-    }
-
-    @Get(':username')
-    @ApiOperation({ summary: 'Touver un utilisateur par Username' })
-    findOneByUsername(@Param('username') username: string) {
-        return this.userService.findByUsername(username);
     }
 
     @Patch(':id')
     @ApiOperation({ summary: 'Mettre à jour un utilisateur' })
-    update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
+    update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: UpdateUserDto) {
         return this.userService.update(id, dto);
     }
 
-    @Delete(':id')
-    @ApiOperation({ summary: 'Supprimer un utilisateur' })
-    remove(@Param('id') id: string) {
+    @Patch(':id/masquer')
+    @ApiOperation({ summary: 'Masquer un utilisateur' })
+    remove(@Param('id', new ParseUUIDPipe()) id: string) {
         return this.userService.remove(id);
     }
 }

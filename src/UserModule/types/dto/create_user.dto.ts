@@ -1,13 +1,13 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsOptional, IsString, IsUUID } from "class-validator";
 
 export class CreateUserDto {
-    @ApiProperty({ required: false })
+    @ApiPropertyOptional({ required: false })
     @IsOptional()
     @IsString()
     username?: string;
 
-    @ApiProperty({ required: false })
+    @ApiPropertyOptional({ required: false })
     @IsOptional()
     @IsString()
     password?: string;
@@ -24,7 +24,7 @@ export class CreateUserDto {
     @IsUUID()
     roleId: string;
 
-    @ApiProperty({ description: 'ID badge unique du technicien' })
+    @ApiPropertyOptional({ description: 'ID badge unique du technicien' })
     @IsOptional()
     @IsString()
     badgeId?: string;
