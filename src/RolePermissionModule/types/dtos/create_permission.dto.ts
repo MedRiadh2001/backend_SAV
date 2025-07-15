@@ -8,6 +8,6 @@ export class CreatePermissionDto {
 
   @ApiPropertyOptional({ description: 'ID de la permission principale (si secondaire)', required: false })
   @IsOptional()
-  @IsNumber()
+  @IsUUID()
   mainPermissionId?: string;
 }
