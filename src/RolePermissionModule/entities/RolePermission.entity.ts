@@ -3,13 +3,16 @@ import {
     PrimaryGeneratedColumn,
     ManyToOne,
     JoinColumn,
+    CreateDateColumn,
+    UpdateDateColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Role } from './Role.entity';
 import { Permission } from './Permission.entity';
+import { IIdentifiable } from 'src/shared/interfaces/IIdentifiable.interface';
 
 @Entity()
-export class RolePermission {
+export class RolePermission implements IIdentifiable {
     @PrimaryGeneratedColumn('uuid')
     @ApiProperty()
     id: string;
@@ -23,4 +26,10 @@ export class RolePermission {
     @JoinColumn({ name: 'permissionId' })
     @ApiProperty({ type: () => Permission })
     permission: Permission;
+
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
 }

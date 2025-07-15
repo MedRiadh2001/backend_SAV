@@ -1,0 +1,9 @@
+export enum PointageType {
+    ENTREE = 'ENTREE',
+    PAUSE = 'PAUSE',
+    REPRISE = 'REPRISE',
+    SORTIE = 'SORTIE',
+    WORKING = 'WORKING',
+    FIN_TACHE = "FIN_TACHE",
+    PAUSE_TACHE = "PAUSE_TACHE",
+}

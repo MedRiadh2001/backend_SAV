@@ -15,6 +15,8 @@ export class RoleService {
         @InjectRepository(Permission) private permissionRepository: Repository<Permission>,
         @InjectRepository(RolePermission) private rolePermissionRepository: Repository<RolePermission>
     ) { }
+    //recherche par mot clé (dans users)
+    //et get par pagination
 
     async create(dto: CreateRoleDto) {
         // const exist = this.roleRepository.findOneBy({ name: dto.name })

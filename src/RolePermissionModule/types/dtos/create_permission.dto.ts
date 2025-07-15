@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, IsNumber } from 'class-validator';
 
 export class CreatePermissionDto {
@@ -6,7 +6,7 @@ export class CreatePermissionDto {
   @IsString()
   name: string;
 
-  @ApiProperty({ description: 'ID de la permission principale (si secondaire)', required: false })
+  @ApiPropertyOptional({ description: 'ID de la permission principale (si secondaire)', required: false })
   @IsOptional()
   @IsNumber()
   mainPermissionId?: string;

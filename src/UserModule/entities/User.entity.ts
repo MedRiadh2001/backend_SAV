@@ -1,10 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Role } from '../../RolePermissionModule/entities/Role.entity';
 import { UserStatus } from '../types/enums/UserStatus.enum';
+import { IIdentifiable } from 'src/shared/interfaces/IIdentifiable.interface';
 
 @Entity()
-export class User {
+export class User implements IIdentifiable {
     @PrimaryGeneratedColumn('uuid')
     @ApiProperty()
     id: string;
@@ -25,7 +26,7 @@ export class User {
     @ApiProperty()
     prenom: string;
 
-    @Column({ type: 'enum', enum: UserStatus , default: UserStatus.ACTIF})
+    @Column({ type: 'enum', enum: UserStatus, default: UserStatus.ACTIF })
     @ApiProperty({ enum: UserStatus })
     statut: UserStatus;
 
@@ -36,4 +37,10 @@ export class User {
     @ManyToOne(() => Role, (role) => role.users, { eager: true })
     @ApiProperty({ type: () => Role })
     role: Role;
+
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
 }

@@ -33,7 +33,7 @@ export class UserService {
     async findAll(page = 1, limit = 10) {
         const [data, total] = await this.userRepo.findAndCount({
             where: { statut: UserStatus.ACTIF },
-            relations: ['role', 'role.rolePermissions', 'role.rolePermissions.permission'],
+            relations: ['role', 'role.rolePermissions.permission'],
             skip: (page - 1) * limit,
             take: limit,
         });
@@ -49,7 +49,7 @@ export class UserService {
     async findOne(id: string) {
         const user = await this.userRepo.findOne({
             where: { id },
-            relations: ['role', 'role.rolePermissions', 'role.rolePermissions.permission'],
+            relations: ['role', 'role.rolePermissions.permission'],
         });
         if (!user) throw new NotFoundException('User not found');
         return user;
@@ -73,7 +73,7 @@ export class UserService {
     }
 
     async findByUsername(username: string) {
-        return this.userRepo.findOne({ where: { username }, relations: ['role', 'role.rolePermissions', 'role.rolePermissions.permission'] });
+        return this.userRepo.findOne({ where: { username }, relations: ['role', 'role.rolePermissions.permission'] });
     }
 
     async validateUser(username: string, password: string): Promise<User> {

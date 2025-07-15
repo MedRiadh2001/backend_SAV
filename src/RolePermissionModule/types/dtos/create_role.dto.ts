@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsArray, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateRoleDto {
@@ -7,7 +7,7 @@ export class CreateRoleDto {
     name: string;
 
     @IsOptional()
-    @ApiProperty({ description: 'Liste des permissions associées (UUID)', type: [String] })
+    @ApiPropertyOptional({ description: 'Liste des permissions associées (UUID)', type: [String] })
     @IsArray()
     @IsUUID('all', { each: true })
     permissionIds?: string[];
