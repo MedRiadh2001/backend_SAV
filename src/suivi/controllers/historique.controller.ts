@@ -4,7 +4,9 @@ import { ScanBadgeDto } from '../types/dtos/scan_badge.dto';
 import { StartTaskDto } from '../types/dtos/start_tache.dto';
 import { EndTaskDto } from '../types/dtos/terminer_tache.dto';
 import { PauseTaskDto } from '../types/dtos/pause_tache.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Historique')
 @Controller('historique')
 export class HistoriqueController {
     constructor(private readonly service: HistoriqueService) { }
