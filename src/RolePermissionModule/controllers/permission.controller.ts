@@ -20,6 +20,12 @@ export class PermissionController {
     return this.permissionService.findAll();
   }
 
+  @Get('main')
+  @ApiOperation({ summary: 'Lister uniquement les MainPermissions' })
+  findMainPermissions() {
+    return this.permissionService.findMainPermissions();
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Obtenir une permission par ID' })
   findOne(@Param('id') id: string) {

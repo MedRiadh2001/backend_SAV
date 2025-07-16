@@ -62,7 +62,7 @@ export class PermissionService {
     async findAll() {
         try {
             return await this.permissionRepository.find({
-                relations: ['secondaryPermission'],
+                relations: ['mainPermission'],
             });
         } catch (error) {
             if (error instanceof HttpException) {
@@ -70,6 +70,23 @@ export class PermissionService {
             }
             throw new InternalServerErrorException(error.message);
         }
+    }
+
+    async findMainPermissions() {
+        const allPermissions = await this.permissionRepository.find({
+            relations: ['mainPermission', 'secondaryPermission'],
+        });
+
+        const mainPermissions = allPermissions.filter(perm => perm.mainPermission === null);
+
+        return mainPermissions.map((main) => ({
+            id: main.id,
+            name: main.name,
+            secondaryPermissions: main.secondaryPermission.map((secondaryPermission) => ({
+                id: secondaryPermission.id,
+                name: secondaryPermission.name,
+            })),
+        }));
     }
 
     async findById(id: string) {
@@ -102,7 +119,7 @@ export class PermissionService {
                     })
                     : null;
 
-                const main = await this.permissionRepository.findOneBy({id: dto.mainPermissionId,})
+                const main = await this.permissionRepository.findOneBy({ id: dto.mainPermissionId, })
                 if (main.mainPermission !== null) {
                     throw new BadRequestException(
                         'A secondary permission cannot be a main permission',
