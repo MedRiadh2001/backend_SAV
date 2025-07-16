@@ -71,8 +71,12 @@ export class HistoriqueService {
         const tache = await this.tacheRepo.findOneBy({ id: dto.tacheId });
         if (!tache) throw new NotFoundException('Tâche non trouvée');
 
-        tache.statut = StatutTache.EN_COURS;
-        await this.tacheRepo.save(tache);
+        if (tache.statut.toUpperCase() === StatutTache.NON_DEMAREE || tache.statut.toUpperCase() === StatutTache.EN_PAUSE) {
+            tache.statut = StatutTache.EN_COURS;
+            await this.tacheRepo.save(tache);
+        } else {
+            throw new BadRequestException("Task already in progress or finished")
+        }
 
         const hist = this.historiqueRepo.create({ technicien: user, tache, type: PointageType.WORKING, heure: new Date() });
         return this.historiqueRepo.save(hist);
@@ -85,8 +89,12 @@ export class HistoriqueService {
         const tache = await this.tacheRepo.findOneBy({ id: dto.tacheId });
         if (!tache) throw new NotFoundException('Tâche non trouvée');
 
-        tache.statut = StatutTache.EN_PAUSE;
-        await this.tacheRepo.save(tache);
+        if (tache.statut.toUpperCase() !== StatutTache.EN_COURS) {
+            throw new BadRequestException("Tache non démarée")
+        } else {
+            tache.statut = StatutTache.EN_PAUSE;
+            await this.tacheRepo.save(tache);
+        }
 
         const hist = this.historiqueRepo.create({
             technicien: user,
@@ -105,8 +113,12 @@ export class HistoriqueService {
         const tache = await this.tacheRepo.findOneBy({ id: dto.tacheId });
         if (!tache) throw new NotFoundException('Tâche non trouvée');
 
-        tache.statut = StatutTache.TERMINEE;
-        await this.tacheRepo.save(tache);
+        if (tache.statut.toUpperCase() !== StatutTache.EN_COURS) {
+            throw new BadRequestException("Tache non démarée")
+        } else {
+            tache.statut = StatutTache.TERMINEE;
+            await this.tacheRepo.save(tache);
+        }
 
         const hist = this.historiqueRepo.create({
             technicien: user,
