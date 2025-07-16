@@ -10,6 +10,7 @@ import { EndTaskDto } from '../types/dtos/terminer_tache.dto';
 import { PointageType } from '../types/enums/TypePointage.enum';
 import { StatutTache } from '../types/enums/statutTache.enum';
 import { PauseTaskDto } from '../types/dtos/pause_tache.dto';
+import { OrdreReparationService } from './ordre-reparation.service';
 
 @Injectable()
 export class HistoriqueService {
@@ -17,6 +18,7 @@ export class HistoriqueService {
         @InjectRepository(Historique) private historiqueRepo: Repository<Historique>,
         @InjectRepository(User) private userRepo: Repository<User>,
         @InjectRepository(Tache) private tacheRepo: Repository<Tache>,
+        private ordreReparationService: OrdreReparationService,
     ) { }
 
     async scanBadge(dto: ScanBadgeDto) {
@@ -68,7 +70,10 @@ export class HistoriqueService {
         const user = await this.userRepo.findOne({ where: { badgeId: dto.badgeId }, relations: ['role'] });
         if (!user || user.role.name.toLowerCase() !== 'technicien') throw new ForbiddenException();
 
-        const tache = await this.tacheRepo.findOneBy({ id: dto.tacheId });
+        const tache = await this.tacheRepo.findOne({
+            where: { id: dto.tacheId },
+            relations: ['ordreReparation'],
+        });
         if (!tache) throw new NotFoundException('Tâche non trouvée');
 
         if (tache.statut.toUpperCase() === StatutTache.NON_DEMAREE || tache.statut.toUpperCase() === StatutTache.EN_PAUSE) {
@@ -76,6 +81,10 @@ export class HistoriqueService {
             await this.tacheRepo.save(tache);
         } else {
             throw new BadRequestException("Task already in progress or finished")
+        }
+
+        if (tache.ordreReparation) {
+            await this.ordreReparationService.updateStatutOR(tache.ordreReparation.id);
         }
 
         const hist = this.historiqueRepo.create({ technicien: user, tache, type: PointageType.WORKING, heure: new Date() });
@@ -86,7 +95,10 @@ export class HistoriqueService {
         const user = await this.userRepo.findOne({ where: { badgeId: dto.badgeId }, relations: ['role'] });
         if (!user || user.role.name.toLowerCase() !== 'technicien') throw new ForbiddenException();
 
-        const tache = await this.tacheRepo.findOneBy({ id: dto.tacheId });
+        const tache = await this.tacheRepo.findOne({
+            where: { id: dto.tacheId },
+            relations: ['ordreReparation'],
+        });
         if (!tache) throw new NotFoundException('Tâche non trouvée');
 
         if (tache.statut.toUpperCase() !== StatutTache.EN_COURS) {
@@ -94,6 +106,10 @@ export class HistoriqueService {
         } else {
             tache.statut = StatutTache.EN_PAUSE;
             await this.tacheRepo.save(tache);
+        }
+        
+        if (tache.ordreReparation) {
+            await this.ordreReparationService.updateStatutOR(tache.ordreReparation.id);
         }
 
         const hist = this.historiqueRepo.create({
@@ -110,7 +126,10 @@ export class HistoriqueService {
         const user = await this.userRepo.findOne({ where: { badgeId: dto.badgeId }, relations: ['role'] });
         if (!user || user.role.name.toLowerCase() !== 'technicien') throw new ForbiddenException();
 
-        const tache = await this.tacheRepo.findOneBy({ id: dto.tacheId });
+        const tache = await this.tacheRepo.findOne({
+            where: { id: dto.tacheId },
+            relations: ['ordreReparation'],
+        });
         if (!tache) throw new NotFoundException('Tâche non trouvée');
 
         if (tache.statut.toUpperCase() !== StatutTache.EN_COURS) {
@@ -118,6 +137,10 @@ export class HistoriqueService {
         } else {
             tache.statut = StatutTache.TERMINEE;
             await this.tacheRepo.save(tache);
+        }
+
+        if (tache.ordreReparation) {
+            await this.ordreReparationService.updateStatutOR(tache.ordreReparation.id);
         }
 
         const hist = this.historiqueRepo.create({
