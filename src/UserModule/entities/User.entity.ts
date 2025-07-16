@@ -34,7 +34,7 @@ export class User implements IIdentifiable {
     @ApiProperty({ description: 'Identifiant du badge du technicien (scan)' })
     badgeId: string;
 
-    @ManyToOne(() => Role, (role) => role.users, { eager: true })
+    @ManyToOne(() => Role, (role) => role.users, { eager: false })
     @ApiProperty({ type: () => Role })
     role: Role;
 

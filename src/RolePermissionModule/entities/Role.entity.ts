@@ -14,7 +14,7 @@ export class Role implements IIdentifiable{
     @ApiProperty()
     name: string;
 
-    @OneToMany(() => RolePermission, (rp) => rp.role, { eager: true })
+    @OneToMany(() => RolePermission, (rp) => rp.role, { eager: false })
     @ApiProperty({ type: () => RolePermission, isArray: true })
     rolePermissions: RolePermission[];
 
