@@ -79,7 +79,7 @@ export class HistoriqueService {
     }
 
     async pauseTask(dto: PauseTaskDto) {
-        const user = await this.userRepo.findOne({ where: { badgeId: dto.badgeId } });
+        const user = await this.userRepo.findOne({ where: { badgeId: dto.badgeId }, relations: ['role'] });
         if (!user || user.role.name.toLowerCase() !== 'technicien') throw new ForbiddenException();
 
         const tache = await this.tacheRepo.findOneBy({ id: dto.tacheId });
@@ -99,7 +99,7 @@ export class HistoriqueService {
     }
 
     async recordEndTask(dto: EndTaskDto) {
-        const user = await this.userRepo.findOne({ where: { badgeId: dto.badgeId } });
+        const user = await this.userRepo.findOne({ where: { badgeId: dto.badgeId }, relations: ['role'] });
         if (!user || user.role.name.toLowerCase() !== 'technicien') throw new ForbiddenException();
 
         const tache = await this.tacheRepo.findOneBy({ id: dto.tacheId });
