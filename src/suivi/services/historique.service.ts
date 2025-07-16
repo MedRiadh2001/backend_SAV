@@ -1,7 +1,7 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/UserModule/entities/User.entity';
-import { Repository, MoreThan } from 'typeorm';
+import { Repository, MoreThan, Between } from 'typeorm';
 import { Historique } from '../entities/Historique.entity';
 import { Tache } from '../entities/Tache.entity';
 import { ScanBadgeDto } from '../types/dtos/scan_badge.dto';
@@ -20,36 +20,48 @@ export class HistoriqueService {
     ) { }
 
     async scanBadge(dto: ScanBadgeDto) {
-        const user = await this.userRepo.findOne({ where: { badgeId: dto.badgeId }, relations: ['role'] });
-        if (!user) throw new BadRequestException("User not found");
-        if (user.role.name.toLowerCase() !== 'technicien') throw new BadRequestException("User doit être technicien");
+        const user = await this.userRepo.findOne({
+            where: { badgeId: dto.badgeId },
+            relations: ['role'],
+        });
+
+        if (!user || user.role.name.toLowerCase() !== 'technicien') {
+            throw new BadRequestException('User doit être technicien');
+        }
 
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
 
-        const alreadyScanned = await this.historiqueRepo.findOne({
-            where: {
-                technicien: { id: user.id },
-                heure: MoreThan(todayStart),
-            },
+        const previousHist = await this.historiqueRepo.findOne({
+            where: { technicien: { id: user.id }, heure: MoreThan(todayStart) },
+            order: { heure: 'DESC' },
         });
 
         let type: PointageType;
-
-        if (!alreadyScanned) {
-            // Premier scan de la journée => ENTREE obligatoire
+        if (!previousHist) {
             type = PointageType.ENTREE;
+        } else if (previousHist.type === PointageType.PAUSE) {
+            type = PointageType.REPRISE;
         } else {
-            // Scan suivant : type obligatoire
-            if (!dto.type) {
-                throw new BadRequestException('Vous devez préciser le type de pointage après l’entrée');
-            }
             type = dto.type;
         }
 
-        const hist = this.historiqueRepo.create({ technicien: user, type, heure: new Date() });
-        return this.historiqueRepo.save(hist);
+        const newHist = this.historiqueRepo.create({
+            technicien: user,
+            type,
+            heure: new Date(),
+        });
+
+        const saved = await this.historiqueRepo.save(newHist);
+
+        return {
+            id: saved.id,
+            type: saved.type,
+            heure: saved.heure,
+            previousType: previousHist?.type || null,
+        };
     }
+
 
 
     async startTask(dto: StartTaskDto) {
@@ -104,5 +116,36 @@ export class HistoriqueService {
         });
 
         return this.historiqueRepo.save(hist);
+    }
+
+    async findAll() {
+        return this.historiqueRepo.find({
+            relations: ['technicien', 'tache'],
+            order: { heure: 'ASC' },
+        });
+    }
+
+    async findByTechnicien(id: string) {
+        return this.historiqueRepo.find({
+            where: { technicien: { id } },
+            relations: ['technicien', 'tache']
+        })
+    }
+
+    async findByTechnicienToday(id: string) {
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+
+        const todayEnd = new Date();
+        todayEnd.setHours(23, 59, 59, 999);
+
+        return this.historiqueRepo.find({
+            where: {
+                technicien: { id },
+                heure: Between(todayStart, todayEnd)
+            },
+            relations: ['technicien', 'tache'],
+            order: { heure: 'ASC' }
+        })
     }
 }

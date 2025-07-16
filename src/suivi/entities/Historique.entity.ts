@@ -11,11 +11,11 @@ export class Historique implements IIdentifiable{
     @ApiProperty()
     id: string;
 
-    @ManyToOne(() => User, { eager: true, onDelete: 'CASCADE' })
+    @ManyToOne(() => User, { eager: false, onDelete: 'CASCADE' })
     @ApiProperty({ type: () => User })
     technicien: User;
 
-    @ManyToOne(() => Tache, { nullable: true, eager: true, onDelete: 'SET NULL' })
+    @ManyToOne(() => Tache, { nullable: true, eager: false, onDelete: 'SET NULL' })
     @ApiProperty({ type: () => Tache, required: false })
     tache?: Tache;
 
