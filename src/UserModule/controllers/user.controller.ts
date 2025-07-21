@@ -3,6 +3,7 @@ import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { UserService } from '../services/user.service';
 import { CreateUserDto } from '../types/dto/create_user.dto';
 import { UpdateUserDto } from '../types/dto/update_user.dto';
+import { ChangePasswordDto } from '../types/dto/change_password.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -39,5 +40,11 @@ export class UserController {
     @ApiOperation({ summary: 'Masquer un utilisateur' })
     remove(@Param('id', new ParseUUIDPipe()) id: string) {
         return this.userService.remove(id);
+    }
+
+    @Patch(':id/change-password')
+    @ApiOperation({ summary: 'Changer le mot de passe utilisateur' })
+    changePassword(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: ChangePasswordDto) {
+        return this.userService.changePassword(id, dto);
     }
 }

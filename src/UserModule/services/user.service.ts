@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role } from 'src/RolePermissionModule/entities/Role.entity';
 import { Repository } from 'typeorm';
@@ -7,6 +7,7 @@ import { CreateUserDto } from '../types/dto/create_user.dto';
 import { UpdateUserDto } from '../types/dto/update_user.dto';
 import * as bcrypt from 'bcryptjs';
 import { UserStatus } from '../types/enums/UserStatus.enum';
+import { ChangePasswordDto } from '../types/dto/change_password.dto';
 
 @Injectable()
 export class UserService {
@@ -71,6 +72,22 @@ export class UserService {
         user.statut = UserStatus.INACTIF;
         return this.userRepo.save(user);
     }
+
+    async changePassword(userId: string, dto: ChangePasswordDto) {
+        if (dto.newPassword !== dto.confirmPassword) {
+            throw new BadRequestException("Les mots de passe ne correspondent pas");
+        }
+
+        const user = await this.userRepo.findOneBy({ id: userId });
+        if (!user) throw new BadRequestException("Utilisateur non trouvé");
+
+        const hashed = await bcrypt.hash(dto.newPassword, 10);
+        user.password = hashed;
+
+        await this.userRepo.save(user);
+        return { message: 'Mot de passe mis à jour avec succès' };
+    }
+
 
     async findByUsername(username: string) {
         return this.userRepo.findOne({ where: { username }, relations: ['role', 'role.rolePermissions.permission'] });
