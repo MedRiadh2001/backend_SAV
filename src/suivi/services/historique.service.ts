@@ -67,8 +67,13 @@ export class HistoriqueService {
 
 
     async startTask(dto: StartTaskDto) {
-        const user = await this.userRepo.findOne({ where: { badgeId: dto.badgeId }, relations: ['role'] });
-        if (!user || user.role.name.toLowerCase() !== 'technicien') throw new ForbiddenException();
+        const user = await this.userRepo.findOne({
+            where: { badgeId: dto.badgeId },
+            relations: ['role'],
+        });
+        if (!user || user.role.name.toLowerCase() !== 'technicien') {
+            throw new ForbiddenException();
+        }
 
         const tache = await this.tacheRepo.findOne({
             where: { id: dto.tacheId },
@@ -76,20 +81,34 @@ export class HistoriqueService {
         });
         if (!tache) throw new NotFoundException('Tâche non trouvée');
 
-        if (tache.statut.toUpperCase() === StatutTache.NON_DEMAREE || tache.statut.toUpperCase() === StatutTache.EN_PAUSE) {
-            tache.statut = StatutTache.EN_COURS;
-            await this.tacheRepo.save(tache);
+        let type: PointageType;
+
+        if (tache.statut === StatutTache.NON_DEMAREE) {
+            type = PointageType.WORKING;
+        } else if (tache.statut === StatutTache.EN_PAUSE) {
+            type = PointageType.REPRISE_TACHE;
         } else {
-            throw new BadRequestException("Task already in progress or finished")
+            throw new BadRequestException('Task already in progress or finished');
         }
+
+        tache.statut = StatutTache.EN_COURS;
+        await this.tacheRepo.save(tache);
+
+        const historique = this.historiqueRepo.create({
+            technicien: user,
+            tache,
+            type,
+            heure: new Date(),
+        });
+        const saved = await this.historiqueRepo.save(historique);
 
         if (tache.ordreReparation) {
             await this.ordreReparationService.updateStatutOR(tache.ordreReparation.id);
         }
 
-        const hist = this.historiqueRepo.create({ technicien: user, tache, type: PointageType.WORKING, heure: new Date() });
-        return this.historiqueRepo.save(hist);
+        return saved;
     }
+
 
     async pauseTask(dto: PauseTaskDto) {
         const user = await this.userRepo.findOne({ where: { badgeId: dto.badgeId }, relations: ['role'] });
@@ -107,7 +126,7 @@ export class HistoriqueService {
             tache.statut = StatutTache.EN_PAUSE;
             await this.tacheRepo.save(tache);
         }
-        
+
         if (tache.ordreReparation) {
             await this.ordreReparationService.updateStatutOR(tache.ordreReparation.id);
         }
@@ -153,8 +172,37 @@ export class HistoriqueService {
         return this.historiqueRepo.save(hist);
     }
 
-    async findAll() {
+    async findAll(month?: string, year?: string) {
+        let whereClause = {};
+
+        if (month && year) {
+            const start = new Date(Number(year), Number(month) - 1, 1, 0, 0, 0);
+            const end = new Date(Number(year), Number(month), 0, 23, 59, 59, 999);
+
+            whereClause = {
+                heure: Between(start, end),
+            };
+        } else if (month) {
+            const now = new Date();
+            const monthIndex = Number(month) - 1;
+
+            const start = new Date(now.getFullYear(), monthIndex, 1, 0, 0, 0);
+            const end = new Date(now.getFullYear(), monthIndex + 1, 0, 23, 59, 59, 999);
+
+            whereClause = {
+                heure: Between(start, end),
+            };
+        } else if (year) {
+            const start = new Date(Number(year), 0, 1, 0, 0, 0);
+            const end = new Date(Number(year), 11, 31, 23, 59, 59, 999);
+
+            whereClause = {
+                heure: Between(start, end),
+            };
+        }
+
         return this.historiqueRepo.find({
+            where: whereClause,
             relations: ['technicien', 'tache'],
             order: { heure: 'ASC' },
         });

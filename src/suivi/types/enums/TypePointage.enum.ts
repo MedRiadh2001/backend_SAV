@@ -6,4 +6,5 @@ export enum PointageType {
     WORKING = 'WORKING',
     FIN_TACHE = "FIN_TACHE",
     PAUSE_TACHE = "PAUSE_TACHE",
+    REPRISE_TACHE = "REPRISE_TACHE",
 }
