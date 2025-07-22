@@ -172,11 +172,18 @@ export class HistoriqueService {
         return this.historiqueRepo.save(hist);
     }
 
-    async findAll(month?: string, year?: string) {
+    async findAll(day?: string, month?: string, year?: string) {
         let whereClause = {};
 
-        if (month && year) {
-            const start = new Date(Number(year), Number(month) - 1, 1, 0, 0, 0);
+        if (day && month && year) {
+            const start = new Date(Number(year), Number(month)-1, Number(day), 1, 0, 0, 0);
+            const end = new Date(Number(year), Number(month)-1, Number(day), 23, 59, 59, 999);
+
+            whereClause = {
+                heure: Between(start, end),
+            };
+        } else if (month && year) {
+            const start = new Date(Number(year), Number(month)-1, 1, 0, 0, 0);
             const end = new Date(Number(year), Number(month), 0, 23, 59, 59, 999);
 
             whereClause = {

@@ -33,10 +33,11 @@ export class HistoriqueController {
 
     @Get()
     @ApiOperation({ summary: 'Lister tous les historiques' })
+    @ApiQuery({ name: 'day', required: false})
     @ApiQuery({ name: 'month', required: false})
     @ApiQuery({ name: 'year', required: false})
-    findAll(@Query('month') month?: string, @Query('year') year?: string,) {
-        return this.service.findAll(month, year);
+    findAll(@Query('day') day?: string, @Query('month') month?: string, @Query('year') year?: string,) {
+        return this.service.findAll(day, month, year);
     }
 
     @Get('all/:technicienId')
