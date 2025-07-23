@@ -40,6 +40,8 @@ export class HistoriqueService {
             type = PointageType.ENTREE;
         } else if (previousHist.type === PointageType.PAUSE) {
             type = PointageType.REPRISE;
+        } else if (previousHist.type && dto.type === PointageType.ENTREE){
+            throw new BadRequestException("Technicien déjà en entrée")
         } else {
             type = dto.type;
         }
