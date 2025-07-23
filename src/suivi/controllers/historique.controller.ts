@@ -16,6 +16,11 @@ export class HistoriqueController {
         return this.service.scanBadge(dto);
     }
 
+    @Get('lastType/:badgeId')
+    getLastType(@Param('badgeId') badgeId: string) {
+        return this.service.getLastType(badgeId);
+    }
+
     @Post('start-task')
     startTask(@Body() dto: StartTaskDto) {
         return this.service.startTask(dto);

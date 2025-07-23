@@ -19,7 +19,7 @@ export class Historique implements IIdentifiable{
     @ApiProperty({ type: () => Tache, required: false })
     tache?: Tache;
 
-    @Column({ type: 'enum', enum: PointageType })
+    @Column({ type: 'enum', enum: PointageType, nullable:true })
     @ApiProperty({ enum: PointageType })
     type: PointageType;
 

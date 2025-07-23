@@ -34,11 +34,7 @@ export class HistoriqueService {
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
 
-        const previousHist = await this.historiqueRepo.findOne({
-            where: { technicien: { id: user.id }, heure: MoreThan(todayStart) },
-            order: { heure: 'DESC' },
-        });
-
+        const previousHist = await this.getLastType(dto.badgeId)
         let type: PointageType;
         if (!previousHist) {
             type = PointageType.ENTREE;
@@ -48,23 +44,39 @@ export class HistoriqueService {
             type = dto.type;
         }
 
-        const newHist = this.historiqueRepo.create({
-            technicien: user,
-            type,
-            heure: new Date(),
-        });
 
-        const saved = await this.historiqueRepo.save(newHist);
 
-        return {
-            id: saved.id,
-            type: saved.type,
-            heure: saved.heure,
-            previousType: previousHist?.type || null,
+        if (type) {
+            const newHist = this.historiqueRepo.create({
+                technicien: user,
+                type,
+                heure: new Date(),
+            });
+
+            const saved = await this.historiqueRepo.save(newHist);
+            return {
+                id: saved.id,
+                type: saved.type,
+                heure: saved.heure
+            }
+        } else {
+            return previousHist
         };
     }
 
+    async getLastType(badgeId: string) {
+        const user = await this.userRepo.findOne({
+            where: { badgeId },
+            relations: ['role'],
+        });
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
 
+        return await this.historiqueRepo.findOne({
+            where: { technicien: { id: user.id }, heure: MoreThan(todayStart) },
+            order: { heure: 'DESC' },
+        });
+    }
 
     async startTask(dto: StartTaskDto) {
         const user = await this.userRepo.findOne({
@@ -176,14 +188,14 @@ export class HistoriqueService {
         let whereClause = {};
 
         if (day && month && year) {
-            const start = new Date(Number(year), Number(month)-1, Number(day), 1, 0, 0, 0);
-            const end = new Date(Number(year), Number(month)-1, Number(day), 23, 59, 59, 999);
+            const start = new Date(Number(year), Number(month) - 1, Number(day), 1, 0, 0, 0);
+            const end = new Date(Number(year), Number(month) - 1, Number(day), 23, 59, 59, 999);
 
             whereClause = {
                 heure: Between(start, end),
             };
         } else if (month && year) {
-            const start = new Date(Number(year), Number(month)-1, 1, 0, 0, 0);
+            const start = new Date(Number(year), Number(month) - 1, 1, 0, 0, 0);
             const end = new Date(Number(year), Number(month), 0, 23, 59, 59, 999);
 
             whereClause = {
