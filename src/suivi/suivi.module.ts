@@ -11,16 +11,14 @@ import { TacheController } from './controllers/tache.controller';
 import { HistoriqueService } from './services/historique.service';
 import { UserModule } from 'src/UserModule/user.module';
 import { User } from 'src/UserModule/entities/User.entity';
-import { QrCodeService } from './services/qr_code.service';
-import { QrCodeController } from './controllers/qr_code.controller';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Historique, OrdreReparation, Tache, User]),
         UserModule
     ],
-    controllers: [OrdreReparationController, TacheController, HistoriqueController, QrCodeController],
-    providers: [OrdreReparationService, TacheService, HistoriqueService, QrCodeService],
+    controllers: [OrdreReparationController, TacheController, HistoriqueController,],
+    providers: [OrdreReparationService, TacheService, HistoriqueService,],
     exports: [OrdreReparationService, TacheService, HistoriqueService]
 })
 export class SuiviModule { }
