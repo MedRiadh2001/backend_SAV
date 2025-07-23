@@ -20,8 +20,9 @@ export class UserController {
     @ApiOperation({ summary: 'Lister tous les utilisateurs' })
     @ApiQuery({ name: 'page', required: false })
     @ApiQuery({ name: 'limit', required: false })
-    findAll(@Query('page') page?: number, @Query('limit') limit?: number) {
-        return this.userService.findAll(page, limit);
+    @ApiQuery({ name: 'roleId', required: false })
+    findAll(@Query('page') page?: number, @Query('limit') limit?: number, @Query('roleId', new ParseUUIDPipe()) roleId?:string) {
+        return this.userService.findAll(page, limit, roleId);
     }
 
     @Get(':id')
