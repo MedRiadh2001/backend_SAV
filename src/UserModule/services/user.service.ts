@@ -36,13 +36,8 @@ export class UserService {
 
         if (roleId) {
             whereClause = {
-                statut: UserStatus.ACTIF,
                 role: { id: roleId }
             }
-        } else if (!roleId) {
-            whereClause = {
-                statut: UserStatus.ACTIF,
-            };
         }
 
         const [data, total] = await this.userRepo.findAndCount({
