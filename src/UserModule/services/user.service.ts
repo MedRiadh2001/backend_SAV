@@ -31,17 +31,22 @@ export class UserService {
         return this.userRepo.save(user);
     }
 
-    async findAll(page = 1, limit = 10, roleId?:string) {
-        const where: any = {
-            statut: UserStatus.ACTIF,
-        };
+    async findAll(page = 1, limit = 10, roleId?: string) {
+        let whereClause = {};
 
         if (roleId) {
-            where.role = { id: roleId };
+            whereClause = {
+                statut: UserStatus.ACTIF,
+                role: { id: roleId }
+            }
+        } else if (!roleId) {
+            whereClause = {
+                statut: UserStatus.ACTIF,
+            };
         }
 
         const [data, total] = await this.userRepo.findAndCount({
-            where,
+            where: whereClause,
             relations: ['role', 'role.rolePermissions.permission'],
             skip: (page - 1) * limit,
             take: limit,

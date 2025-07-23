@@ -21,7 +21,7 @@ export class UserController {
     @ApiQuery({ name: 'page', required: false })
     @ApiQuery({ name: 'limit', required: false })
     @ApiQuery({ name: 'roleId', required: false })
-    findAll(@Query('page') page?: number, @Query('limit') limit?: number, @Query('roleId', new ParseUUIDPipe()) roleId?:string) {
+    findAll(@Query('page') page?: number, @Query('limit') limit?: number, @Query('roleId', new ParseUUIDPipe({ optional: true })) roleId?:string) {
         return this.userService.findAll(page, limit, roleId);
     }
 
