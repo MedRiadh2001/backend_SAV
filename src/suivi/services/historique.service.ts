@@ -5,12 +5,10 @@ import { Repository, MoreThan, Between } from 'typeorm';
 import { Historique } from '../entities/Historique.entity';
 import { Tache } from '../entities/Tache.entity';
 import { ScanBadgeDto } from '../types/dtos/scan_badge.dto';
-import { StartTaskDto } from '../types/dtos/start_tache.dto';
-import { EndTaskDto } from '../types/dtos/terminer_tache.dto';
 import { PointageType } from '../types/enums/TypePointage.enum';
 import { StatutTache } from '../types/enums/statutTache.enum';
-import { PauseTaskDto } from '../types/dtos/pause_tache.dto';
 import { OrdreReparationService } from './ordre-reparation.service';
+import { TaskActionDto } from '../types/dtos/task_action.dto';
 
 @Injectable()
 export class HistoriqueService {
@@ -80,7 +78,7 @@ export class HistoriqueService {
         });
     }
 
-    async startTask(dto: StartTaskDto) {
+    async taskAction(dto: TaskActionDto, action: 'start-task' | 'pause-task' | 'end-task') {
         const user = await this.userRepo.findOne({
             where: { badgeId: dto.badgeId },
             relations: ['role'],
@@ -96,94 +94,54 @@ export class HistoriqueService {
         if (!tache) throw new NotFoundException('Tâche non trouvée');
 
         let type: PointageType;
+        const now = new Date();
 
-        if (tache.statut === StatutTache.NON_DEMAREE) {
-            type = PointageType.WORKING;
-        } else if (tache.statut === StatutTache.EN_PAUSE) {
-            type = PointageType.REPRISE_TACHE;
-        } else {
-            throw new BadRequestException('Task already in progress or finished');
+        switch (action) {
+            case 'start-task':
+                if (tache.statut === StatutTache.NON_DEMAREE) {
+                    type = PointageType.WORKING;
+                } else if (tache.statut === StatutTache.EN_PAUSE) {
+                    type = PointageType.REPRISE_TACHE;
+                } else {
+                    throw new BadRequestException('Task already in progress or finished');
+                }
+                tache.statut = StatutTache.EN_COURS;
+                break;
+
+            case 'pause-task':
+                if (tache.statut !== StatutTache.EN_COURS) {
+                    throw new BadRequestException('Task must be in progress to pause it');
+                }
+                tache.statut = StatutTache.EN_PAUSE;
+                type = PointageType.PAUSE_TACHE;
+                break;
+
+            case 'end-task':
+                if (tache.statut !== StatutTache.EN_COURS) {
+                    throw new BadRequestException('Task must be in progress to finish it');
+                }
+                tache.statut = StatutTache.TERMINEE;
+                type = PointageType.FIN_TACHE;
+                break;
+
+            default:
+                throw new BadRequestException('Invalid action');
         }
 
-        tache.statut = StatutTache.EN_COURS;
         await this.tacheRepo.save(tache);
+
+        if (tache.ordreReparation) {
+            await this.ordreReparationService.updateStatutOR(tache.ordreReparation.id);
+        }
 
         const historique = this.historiqueRepo.create({
             technicien: user,
             tache,
             type,
-            heure: new Date(),
-        });
-        const saved = await this.historiqueRepo.save(historique);
-
-        if (tache.ordreReparation) {
-            await this.ordreReparationService.updateStatutOR(tache.ordreReparation.id);
-        }
-
-        return saved;
-    }
-
-
-    async pauseTask(dto: PauseTaskDto) {
-        const user = await this.userRepo.findOne({ where: { badgeId: dto.badgeId }, relations: ['role'] });
-        if (!user || user.role.name.toLowerCase() !== 'technicien') throw new ForbiddenException();
-
-        const tache = await this.tacheRepo.findOne({
-            where: { id: dto.tacheId },
-            relations: ['ordreReparation'],
-        });
-        if (!tache) throw new NotFoundException('Tâche non trouvée');
-
-        if (tache.statut.toUpperCase() !== StatutTache.EN_COURS) {
-            throw new BadRequestException("Tache non démarée")
-        } else {
-            tache.statut = StatutTache.EN_PAUSE;
-            await this.tacheRepo.save(tache);
-        }
-
-        if (tache.ordreReparation) {
-            await this.ordreReparationService.updateStatutOR(tache.ordreReparation.id);
-        }
-
-        const hist = this.historiqueRepo.create({
-            technicien: user,
-            tache,
-            type: PointageType.PAUSE_TACHE,
-            heure: new Date(),
+            heure: now,
         });
 
-        return this.historiqueRepo.save(hist);
-    }
-
-    async recordEndTask(dto: EndTaskDto) {
-        const user = await this.userRepo.findOne({ where: { badgeId: dto.badgeId }, relations: ['role'] });
-        if (!user || user.role.name.toLowerCase() !== 'technicien') throw new ForbiddenException();
-
-        const tache = await this.tacheRepo.findOne({
-            where: { id: dto.tacheId },
-            relations: ['ordreReparation'],
-        });
-        if (!tache) throw new NotFoundException('Tâche non trouvée');
-
-        if (tache.statut.toUpperCase() !== StatutTache.EN_COURS) {
-            throw new BadRequestException("Tache non démarée")
-        } else {
-            tache.statut = StatutTache.TERMINEE;
-            await this.tacheRepo.save(tache);
-        }
-
-        if (tache.ordreReparation) {
-            await this.ordreReparationService.updateStatutOR(tache.ordreReparation.id);
-        }
-
-        const hist = this.historiqueRepo.create({
-            technicien: user,
-            tache,
-            type: PointageType.FIN_TACHE,
-            heure: new Date(),
-        });
-
-        return this.historiqueRepo.save(hist);
+        return this.historiqueRepo.save(historique);
     }
 
     async findAll(startDate?: string, endDate?: string) {
