@@ -4,28 +4,33 @@ import { ScanBadgeDto } from '../types/dtos/scan_badge.dto';
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { TaskActionDto } from '../types/dtos/task_action.dto';
 
-@ApiTags('Historique')
-@Controller('historique')
+@ApiTags('Activity')
+@Controller('mobile')
 export class HistoriqueController {
-    constructor(private readonly service: HistoriqueService) { }
+    constructor(private readonly historiqueService: HistoriqueService) { }
 
     @Post('badge-scan')
     scanBadge(@Body() dto: ScanBadgeDto) {
-        return this.service.scanBadge(dto);
+        return this.historiqueService.scanBadge(dto);
     }
 
-    @Get('lastType/:badgeId')
+    @Get('activity/lastType/:badgeId')
     getLastType(@Param('badgeId') badgeId: string) {
-        return this.service.getLastType(badgeId);
+        return this.historiqueService.getLastType(badgeId);
     }
 
     @Post('taskAction')
     @ApiOperation({ summary: 'Effectuer une action sur une tâche' })
     tacheAction(@Body() dto: TaskActionDto) {
-        return this.service.taskAction(dto);
+        return this.historiqueService.taskAction(dto);
     }
+}
 
-    @Get()
+@ApiTags('Activity')
+@Controller('backoffice')
+export class HistoriqueBackofficeController {
+    constructor(private readonly historiqueService: HistoriqueService) { }
+    @Get('activity')
     @ApiOperation({ summary: 'Lister tous les historiques entre deux dates' })
     @ApiQuery({ name: 'startDate', required: false, description: 'Date de début (YYYY-MM-DD)' })
     @ApiQuery({ name: 'endDate', required: false, description: 'Date de fin (YYYY-MM-DD), aujourd’hui par défaut si manquant' })
@@ -33,18 +38,18 @@ export class HistoriqueController {
         @Query('startDate') startDate?: string,
         @Query('endDate') endDate?: string,
     ) {
-        return this.service.findAll(startDate, endDate);
+        return this.historiqueService.findAll(startDate, endDate);
     }
 
-    @Get('all/:technicienId')
+    @Get('activity/all/:technicienId')
     @ApiOperation({ summary: "Lister l'historique d'un technicien" })
     findByTechnicien(@Param('technicienId', new ParseUUIDPipe()) id: string) {
-        return this.service.findByTechnicien(id);
+        return this.historiqueService.findByTechnicien(id);
     }
 
-    @Get('today/:technicienId')
+    @Get('activity/today/:technicienId')
     @ApiOperation({ summary: "Lister l'historique d'un technicien pour le jour courant uniquement" })
     findByTechnicienToday(@Param('technicienId', new ParseUUIDPipe()) id: string) {
-        return this.service.findByTechnicienToday(id);
+        return this.historiqueService.findByTechnicienToday(id);
     }
 }

@@ -8,7 +8,7 @@ import { ExcelExportService } from 'src/shared/excel_export.service';
 import { Response } from 'express';
 
 @ApiTags('Users')
-@Controller('users')
+@Controller('backoffice/users')
 export class UserController {
     constructor(private readonly userService: UserService, private readonly excelExportService: ExcelExportService) { }
 

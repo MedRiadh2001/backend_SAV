@@ -5,14 +5,14 @@ import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ExcelExportService } from 'src/shared/excel_export.service';
 import { Response } from 'express';
 
-@ApiTags('Ordres de Réparation')
-@Controller('ordre-reparation')
-export class OrdreReparationController {
-    constructor(private readonly service: OrdreReparationService, private readonly excelExportService: ExcelExportService) { }
+@ApiTags('RepairOrders')
+@Controller('backoffice/RepairOrders')
+export class OrdreReparationBackofficeController {
+    constructor(private readonly ORService: OrdreReparationService, private readonly excelExportService: ExcelExportService) { }
 
     @Post()
     create(@Body() dto: CreateOrdreReparationDto) {
-        return this.service.create(dto);
+        return this.ORService.create(dto);
     }
 
     @Get('export')
@@ -20,7 +20,7 @@ export class OrdreReparationController {
     @ApiQuery({ name: 'page', required: false })
     @ApiQuery({ name: 'items', required: false })
     async exportOR(@Res() res: Response, @Query('page') page: number, @Query('items') items: number,) {
-        const { result } = await this.service.findAllToExport(page, items);
+        const { result } = await this.ORService.findAllToExport(page, items);
 
         const columns = [
             { header: 'Num OR', key: 'numOR' },
@@ -43,12 +43,25 @@ export class OrdreReparationController {
     @ApiQuery({ name: 'items', required: false })
     @ApiQuery({ name: 'keyword', required: false })
     findAll(@Query('page') page?: number, @Query('items') items?: number, @Query('keyword') keyword?: string) {
-        return this.service.findAll(page, items, keyword);
+        return this.ORService.findAll(page, items, keyword);
     }
+
+    
+    @Get(':id')
+    findOne(@Param('id', new ParseUUIDPipe()) id: string) {
+        return this.ORService.findOne(id);
+    }
+
+}
+
+@ApiTags('RepairOrders')
+@Controller('RepairOrders')
+export class OrdreReparationController {
+    constructor(private readonly ORService: OrdreReparationService) { }
 
     @Get(':id')
     findOne(@Param('id', new ParseUUIDPipe()) id: string) {
-        return this.service.findOne(id);
+        return this.ORService.findOne(id);
     }
 
 }

@@ -5,7 +5,7 @@ import { UserService } from '../services/user.service';
 import { LoginUserDto } from '../types/dto/login_user.dto';
 
 @ApiTags('Auth')
-@Controller('auth')
+@Controller('backoffice')
 export class AuthController {
     constructor(private userService: UserService, private jwtService: JwtService) { }
 

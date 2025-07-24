@@ -1,11 +1,12 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { RoleService } from '../services/role.service';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateRoleDto } from '../types/dtos/create_role.dto';
 import { UpdateRoleDto } from '../types/dtos/update_role.dto';
 import { AddPermissionsDto } from '../types/dtos/add_permission.dto';
 
-@Controller('role')
+@ApiTags('Roles')
+@Controller('backoffice/role')
 export class RoleController {
     constructor(private readonly roleService: RoleService) { }
 

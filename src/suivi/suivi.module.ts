@@ -5,8 +5,8 @@ import { OrdreReparation } from './entities/OrdreReparation.entity';
 import { Tache } from './entities/Tache.entity';
 import { OrdreReparationService } from './services/ordre-reparation.service';
 import { TacheService } from './services/tache.service';
-import { HistoriqueController } from './controllers/historique.controller';
-import { OrdreReparationController } from './controllers/ordre-reparation.controller';
+import { HistoriqueBackofficeController, HistoriqueController } from './controllers/historique.controller';
+import { OrdreReparationBackofficeController, OrdreReparationController } from './controllers/ordre-reparation.controller';
 import { TacheController } from './controllers/tache.controller';
 import { HistoriqueService } from './services/historique.service';
 import { UserModule } from 'src/UserModule/user.module';
@@ -18,7 +18,7 @@ import { ExcelExportService } from 'src/shared/excel_export.service';
         TypeOrmModule.forFeature([Historique, OrdreReparation, Tache, User]),
         UserModule
     ],
-    controllers: [OrdreReparationController, TacheController, HistoriqueController,],
+    controllers: [OrdreReparationController, TacheController, HistoriqueController, HistoriqueBackofficeController, OrdreReparationBackofficeController],
     providers: [OrdreReparationService, TacheService, HistoriqueService, ExcelExportService],
     exports: [OrdreReparationService, TacheService, HistoriqueService]
 })
