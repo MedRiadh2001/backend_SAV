@@ -31,9 +31,16 @@ export class UserService {
         return this.userRepo.save(user);
     }
 
-    async findAllToExport(page = 1, items = 10) {
-
+    async findAllToExport(page = 1, items = 10, roleId?: string) {
+        let whereClause: {}
+        if (roleId) {
+            whereClause = {
+                role: { id: roleId }
+            }
+        }
+        
         const [result, total] = await this.userRepo.findAndCount({
+            where: whereClause,
             relations: ['role', 'role.rolePermissions.permission'],
             skip: (page - 1) * items,
             take: items,
@@ -100,11 +107,11 @@ export class UserService {
         const user = await this.userRepo.findOneBy({ id });
         if (!user) throw new NotFoundException('User not found');
         const role = await this.roleRepo.findOneBy({ id: dto.roleId });
-        const {lastName, firstName, statut, roleId} = dto
-        if (lastName) {user.lastName = dto.lastName;}
-        if (firstName) {user.firstName = dto.firstName}
-        if (statut) {user.statut = dto.statut}
-        if (roleId){user.role = role};
+        const { lastName, firstName, statut, roleId } = dto
+        if (lastName) { user.lastName = dto.lastName; }
+        if (firstName) { user.firstName = dto.firstName }
+        if (statut) { user.statut = dto.statut }
+        if (roleId) { user.role = role };
         return this.userRepo.save(user);
     }
 
