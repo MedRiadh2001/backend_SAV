@@ -11,6 +11,7 @@ import { TacheController } from './controllers/tache.controller';
 import { HistoriqueService } from './services/historique.service';
 import { UserModule } from 'src/UserModule/user.module';
 import { User } from 'src/UserModule/entities/User.entity';
+import { ExcelExportService } from 'src/shared/excel_export.service';
 
 @Module({
     imports: [
@@ -18,7 +19,7 @@ import { User } from 'src/UserModule/entities/User.entity';
         UserModule
     ],
     controllers: [OrdreReparationController, TacheController, HistoriqueController,],
-    providers: [OrdreReparationService, TacheService, HistoriqueService,],
+    providers: [OrdreReparationService, TacheService, HistoriqueService, ExcelExportService],
     exports: [OrdreReparationService, TacheService, HistoriqueService]
 })
 export class SuiviModule { }

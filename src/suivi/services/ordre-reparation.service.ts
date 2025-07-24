@@ -7,32 +7,65 @@ import { StatutOR } from '../types/enums/statutOR.enum';
 
 @Injectable()
 export class OrdreReparationService {
-    constructor(@InjectRepository(OrdreReparation) private repo: Repository<OrdreReparation>) { }
+    constructor(@InjectRepository(OrdreReparation) private ORrepo: Repository<OrdreReparation>) { }
 
     create(dto: CreateOrdreReparationDto) {
-        return this.repo.save(this.repo.create(dto));
+        return this.ORrepo.save(this.ORrepo.create(dto));
     }
 
-    async findAll(page = 1, limit = 10) {
-        const [data, total] = await this.repo.findAndCount({
+    async findAllToExport(page = 1, items = 10) {
+        const [result, total] = await this.ORrepo.findAndCount({
             relations: ['taches'],
-            skip: (page - 1) * limit,
-            take: limit,
+            skip: (page - 1) * items,
+            take: items,
         });
+
+        const lastPage = Math.ceil(total / items);
+        const nextPage = page < lastPage ? page + 1 : null;
+
         return {
-            data,
+            result,
             total,
             page,
-            lastPage: Math.ceil(total / limit),
+            lastPage,
+            nextPage,
         };
     }
 
+    async findAll(page = 1, items = 10, keyword?: string) {
+        const qb = this.ORrepo.createQueryBuilder('or')
+            .leftJoinAndSelect('or.taches', 'tache')
+            .skip((page - 1) * items)
+            .take(items);
+
+        if (keyword) {
+            qb.andWhere(
+                `(LOWER(or.vehicule) LIKE :kw OR LOWER(or.client) LIKE :kw OR CAST(or.numOR AS TEXT) LIKE :kw)`,
+                { kw: `%${keyword.toLowerCase()}%` }
+            );
+        }
+
+        const [result, total] = await qb.getManyAndCount();
+
+        const lastPage = Math.ceil(total / items);
+        const nextPage = page < lastPage ? page + 1 : null;
+
+        return {
+            result,
+            total,
+            page,
+            lastPage,
+            nextPage,
+        };
+    }
+
+
     findOne(id: string) {
-        return this.repo.findOne({ where: { id }, relations: ['taches'] });
+        return this.ORrepo.findOne({ where: { id }, relations: ['taches'] });
     }
 
     async updateStatutOR(orId: string) {
-        const or = await this.repo.findOne({
+        const or = await this.ORrepo.findOne({
             where: { id: orId },
             relations: ['taches'],
         });
@@ -51,7 +84,7 @@ export class OrdreReparationService {
             or.statut = StatutOR.EN_COURS;
         }
 
-        return this.repo.save(or);
+        return this.ORrepo.save(or);
     }
 
 }

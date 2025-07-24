@@ -8,6 +8,7 @@ import { RolePermission } from 'src/RolePermissionModule/entities/RolePermission
 import { User } from './entities/User.entity';
 import { AuthController } from './controllers/auth.controller';
 import { JwtModule } from '@nestjs/jwt';
+import { ExcelExportService } from 'src/shared/excel_export.service';
 
 @Module({
     imports: [
@@ -18,7 +19,7 @@ import { JwtModule } from '@nestjs/jwt';
         TypeOrmModule.forFeature([Role, Permission, RolePermission, User]),
     ],
     controllers: [UserController, AuthController],
-    providers: [UserService],
+    providers: [UserService, ExcelExportService],
     exports: [UserService],
 })
 export class UserModule { }

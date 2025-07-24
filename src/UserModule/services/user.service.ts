@@ -31,29 +31,61 @@ export class UserService {
         return this.userRepo.save(user);
     }
 
-    async findAll(page = 1, limit = 10, roleId?: string) {
-        let whereClause = {};
+    async findAllToExport(page = 1, items = 10) {
 
-        if (roleId) {
-            whereClause = {
-                role: { id: roleId }
-            }
-        }
-
-        const [data, total] = await this.userRepo.findAndCount({
-            where: whereClause,
+        const [result, total] = await this.userRepo.findAndCount({
             relations: ['role', 'role.rolePermissions.permission'],
-            skip: (page - 1) * limit,
-            take: limit,
+            skip: (page - 1) * items,
+            take: items,
         });
 
+        const lastPage = Math.ceil(total / items);
+        const nextPage = page < lastPage ? page + 1 : null;
+
         return {
-            data,
+            result,
             total,
             page,
-            lastPage: Math.ceil(total / limit),
+            lastPage,
+            nextPage,
         };
     }
+
+    async findAll(page = 1, items = 10, roleId?: string, keyword?: string) {
+        const query = this.userRepo
+            .createQueryBuilder('user')
+            .leftJoinAndSelect('user.role', 'role')
+            .leftJoinAndSelect('role.rolePermissions', 'rolePermissions')
+            .leftJoinAndSelect('rolePermissions.permission', 'permission');
+
+        if (roleId) {
+            query.andWhere('role.id = :roleId', { roleId });
+        }
+
+        if (keyword) {
+            query.andWhere(
+                `(user.nom ILIKE :kw OR user.prenom ILIKE :kw OR user.username ILIKE :kw)`,
+                { kw: `%${keyword}%` }
+            );
+        }
+
+        const [result, total] = await query
+            .skip((page - 1) * items)
+            .take(items)
+            .getManyAndCount();
+
+        const lastPage = Math.ceil(total / items);
+        const nextPage = page < lastPage ? page + 1 : null;
+
+        return {
+            result,
+            total,
+            page,
+            lastPage,
+            nextPage,
+        };
+    }
+
 
     async findOne(id: string) {
         const user = await this.userRepo.findOne({
@@ -68,8 +100,11 @@ export class UserService {
         const user = await this.userRepo.findOneBy({ id });
         if (!user) throw new NotFoundException('User not found');
         const role = await this.roleRepo.findOneBy({ id: dto.roleId });
-        user.username = dto.username;
-        user.role = role;
+        const {nom, prenom, statut, roleId} = dto
+        if (nom) {user.nom = dto.nom;}
+        if (prenom) {user.prenom = dto.prenom}
+        if (statut) {user.statut = dto.statut}
+        if (roleId){user.role = role};
         return this.userRepo.save(user);
     }
 
