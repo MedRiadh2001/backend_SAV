@@ -19,10 +19,10 @@ export class HistoriqueController {
         return this.service.getLastType(badgeId);
     }
 
-    @Post('task/:action')
-    @ApiOperation({ summary: 'Effectuer une action sur une tâche (start-task | pause-task | end-task)' })
-    tacheAction(@Param('action') action: 'start-task' | 'pause-task' | 'end-task', @Body() dto: TaskActionDto) {
-        return this.service.taskAction(dto, action);
+    @Post('taskAction')
+    @ApiOperation({ summary: 'Effectuer une action sur une tâche' })
+    tacheAction(@Body() dto: TaskActionDto) {
+        return this.service.taskAction(dto);
     }
 
     @Get()

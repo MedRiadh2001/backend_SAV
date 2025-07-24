@@ -78,7 +78,7 @@ export class HistoriqueService {
         });
     }
 
-    async taskAction(dto: TaskActionDto, action: 'start-task' | 'pause-task' | 'end-task') {
+    async taskAction(dto: TaskActionDto) {
         const user = await this.userRepo.findOne({
             where: { badgeId: dto.badgeId },
             relations: ['role'],
@@ -96,8 +96,9 @@ export class HistoriqueService {
         let type: PointageType;
         const now = new Date();
 
+        const action = dto.action;
         switch (action) {
-            case 'start-task':
+            case 'START_TASK':
                 if (tache.statut === StatutTache.NON_DEMAREE) {
                     type = PointageType.WORKING;
                 } else if (tache.statut === StatutTache.EN_PAUSE) {
@@ -108,7 +109,7 @@ export class HistoriqueService {
                 tache.statut = StatutTache.EN_COURS;
                 break;
 
-            case 'pause-task':
+            case 'PAUSE_TASK':
                 if (tache.statut !== StatutTache.EN_COURS) {
                     throw new BadRequestException('Task must be in progress to pause it');
                 }
@@ -116,7 +117,7 @@ export class HistoriqueService {
                 type = PointageType.PAUSE_TACHE;
                 break;
 
-            case 'end-task':
+            case 'END_TASK':
                 if (tache.statut !== StatutTache.EN_COURS) {
                     throw new BadRequestException('Task must be in progress to finish it');
                 }
