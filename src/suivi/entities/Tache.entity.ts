@@ -23,11 +23,11 @@ export class Tache implements IIdentifiable {
     @ApiProperty({ enum: TaskStatus })
     statut: TaskStatus;
 
-    @ManyToOne(() => OrdreReparation, (or) => or.taches, { onDelete: 'CASCADE' })
+    @ManyToOne(() => OrdreReparation, (or) => or.tasks, { onDelete: 'CASCADE' })
     @ApiProperty({ type: () => OrdreReparation })
     ordreReparation: OrdreReparation;
 
-    @OneToMany(() => Historique, (hist) => hist.tache)
+    @OneToMany(() => Historique, (hist) => hist.task)
     historiques: Historique[];
 
     @CreateDateColumn()

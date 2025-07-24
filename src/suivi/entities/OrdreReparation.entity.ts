@@ -28,7 +28,7 @@ export class OrdreReparation implements IIdentifiable {
 
     @OneToMany(() => Tache, (tache) => tache.ordreReparation)
     @ApiProperty({ type: () => Tache, isArray: true })
-    taches: Tache[];
+    tasks: Tache[];
 
     @CreateDateColumn()
     createdAt: Date;

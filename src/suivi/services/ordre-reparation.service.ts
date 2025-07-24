@@ -72,7 +72,7 @@ export class OrdreReparationService {
 
         if (!or) throw new BadRequestException('Ordre de réparation non trouvé');
 
-        const statuts = or.taches.map((t) => t.statut);
+        const statuts = or.tasks.map((t) => t.statut);
 
         if (statuts.every((s) => s === 'NOT_STARTED')) {
             or.statut = OrStatus.NOT_STARTED;

@@ -23,8 +23,8 @@ export class UserService {
         const user = this.userRepo.create({
             username: dto.username,
             password: dto.password ? await bcrypt.hash(dto.password, 10) : undefined,
-            nom: dto.nom,
-            prenom: dto.prenom,
+            lastName: dto.lastName,
+            firstName: dto.firstName,
             role,
             badgeId: dto.badgeId,
         });
@@ -64,7 +64,7 @@ export class UserService {
 
         if (keyword) {
             query.andWhere(
-                `(user.nom ILIKE :kw OR user.prenom ILIKE :kw OR user.username ILIKE :kw)`,
+                `(user.lastName ILIKE :kw OR user.firstName ILIKE :kw OR user.username ILIKE :kw OR role.name ILIKE :kw)`,
                 { kw: `%${keyword}%` }
             );
         }
@@ -100,9 +100,9 @@ export class UserService {
         const user = await this.userRepo.findOneBy({ id });
         if (!user) throw new NotFoundException('User not found');
         const role = await this.roleRepo.findOneBy({ id: dto.roleId });
-        const {nom, prenom, statut, roleId} = dto
-        if (nom) {user.nom = dto.nom;}
-        if (prenom) {user.prenom = dto.prenom}
+        const {lastName, firstName, statut, roleId} = dto
+        if (lastName) {user.lastName = dto.lastName;}
+        if (firstName) {user.firstName = dto.firstName}
         if (statut) {user.statut = dto.statut}
         if (roleId){user.role = role};
         return this.userRepo.save(user);

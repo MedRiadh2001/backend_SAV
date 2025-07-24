@@ -87,11 +87,11 @@ export class HistoriqueService {
             throw new ForbiddenException();
         }
 
-        const tache = await this.tacheRepo.findOne({
+        const task = await this.tacheRepo.findOne({
             where: { id: dto.tacheId },
             relations: ['ordreReparation'],
         });
-        if (!tache) throw new NotFoundException('Tâche non trouvée');
+        if (!task) throw new NotFoundException('Tâche non trouvée');
 
         let type: HistoriqueType;
         const now = new Date();
@@ -99,29 +99,29 @@ export class HistoriqueService {
         const action = dto.action;
         switch (action) {
             case 'START_TASK':
-                if (tache.statut === TaskStatus.NOT_STARTED) {
+                if (task.statut === TaskStatus.NOT_STARTED) {
                     type = HistoriqueType.WORKING;
-                } else if (tache.statut === TaskStatus.PAUSED) {
+                } else if (task.statut === TaskStatus.PAUSED) {
                     type = HistoriqueType.TASK_RESUME;
                 } else {
                     throw new BadRequestException('Task already in progress or finished');
                 }
-                tache.statut = TaskStatus.IN_PROGRESS;
+                task.statut = TaskStatus.IN_PROGRESS;
                 break;
 
             case 'PAUSE_TASK':
-                if (tache.statut !== TaskStatus.IN_PROGRESS) {
+                if (task.statut !== TaskStatus.IN_PROGRESS) {
                     throw new BadRequestException('Task must be in progress to pause it');
                 }
-                tache.statut = TaskStatus.PAUSED;
+                task.statut = TaskStatus.PAUSED;
                 type = HistoriqueType.TASK_PAUSED;
                 break;
 
             case 'END_TASK':
-                if (tache.statut !== TaskStatus.IN_PROGRESS) {
+                if (task.statut !== TaskStatus.IN_PROGRESS) {
                     throw new BadRequestException('Task must be in progress to finish it');
                 }
-                tache.statut = TaskStatus.COMPLETED;
+                task.statut = TaskStatus.COMPLETED;
                 type = HistoriqueType.END_TASK;
                 break;
 
@@ -129,15 +129,15 @@ export class HistoriqueService {
                 throw new BadRequestException('Invalid action');
         }
 
-        await this.tacheRepo.save(tache);
+        await this.tacheRepo.save(task);
 
-        if (tache.ordreReparation) {
-            await this.ordreReparationService.updateStatutOR(tache.ordreReparation.id);
+        if (task.ordreReparation) {
+            await this.ordreReparationService.updateStatutOR(task.ordreReparation.id);
         }
 
         const historique = this.historiqueRepo.create({
             technicien: user,
-            tache,
+            task,
             type,
             heure: now,
         });

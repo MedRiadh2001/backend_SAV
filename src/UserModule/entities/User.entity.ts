@@ -20,11 +20,11 @@ export class User implements IIdentifiable {
 
     @Column()
     @ApiProperty()
-    nom: string;
+    lastName: string;
 
     @Column()
     @ApiProperty()
-    prenom: string;
+    firstName: string;
 
     @Column({ type: 'enum', enum: UserStatus, default: UserStatus.ACTIV })
     @ApiProperty({ enum: UserStatus })

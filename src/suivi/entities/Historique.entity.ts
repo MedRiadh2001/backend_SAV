@@ -17,7 +17,7 @@ export class Historique implements IIdentifiable{
 
     @ManyToOne(() => Tache, { nullable: true, eager: false, onDelete: 'SET NULL' })
     @ApiProperty({ type: () => Tache, required: false })
-    tache?: Tache;
+    task?: Tache;
 
     @Column({ type: 'enum', enum: HistoriqueType, nullable:true , enumName:'historique_type_enum_v2'})
     @ApiProperty({ enum: HistoriqueType })

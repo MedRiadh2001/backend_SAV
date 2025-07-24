@@ -14,11 +14,11 @@ export class CreateUserDto {
 
     @ApiProperty({description: "nom de l'utilisateur"})
     @IsString()
-    nom:string;
+    lastName:string;
 
     @ApiProperty({description: "prenom de l'utilisateur"})
     @IsString()
-    prenom:string;
+    firstName:string;
 
     @ApiProperty({ description: 'UUID du rôle' })
     @IsUUID()

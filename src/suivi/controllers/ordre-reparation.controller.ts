@@ -32,7 +32,7 @@ export class OrdreReparationController {
 
         const formatted = result.map(or => ({
             ...or,
-            tachesList: or.taches?.map(t => t.titre).join(', ') || '',
+            tachesList: or.tasks?.map(t => t.titre).join(', ') || '',
         }));
 
         await this.excelExportService.exportToExcel(formatted, columns, 'Ordres_Reparation', res);
