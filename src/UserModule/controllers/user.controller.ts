@@ -32,11 +32,7 @@ export class UserController {
     @ApiOperation({ summary: 'Exporter les utilisateurs en Excel' })
     @ApiQuery({ name: 'page', required: false })
     @ApiQuery({ name: 'limit', required: false })
-    async exportUsers(
-        @Res() res: Response,
-        @Query('page') page = 1,
-        @Query('limit') limit = 10
-    ) {
+    async exportUsers(@Res() res: Response, @Query('page') page : number, @Query('limit') limit : number) {
         const { result } = await this.userService.findAllToExport(page, limit);
 
         const columns = [

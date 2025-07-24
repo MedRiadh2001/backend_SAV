@@ -19,25 +19,21 @@ export class OrdreReparationController {
     @ApiOperation({ summary: 'Exporter les OR en Excel' })
     @ApiQuery({ name: 'page', required: false })
     @ApiQuery({ name: 'items', required: false })
-    async exportOR(
-        @Res() res: Response,
-        @Query('page') page = 1,
-        @Query('items') items = 10,
-    ) {
+    async exportOR(@Res() res: Response, @Query('page') page: number, @Query('items') items: number,) {
         const { result } = await this.service.findAllToExport(page, items);
 
-const columns = [
-        { header: 'Num OR', key: 'numOR' },
-        { header: 'Client', key: 'client' },
-        { header: 'Véhicule', key: 'vehicule' },
-        { header: 'Statut', key: 'statut' },
-        { header: 'Tâches', key: 'tachesList' },
-    ];
+        const columns = [
+            { header: 'Num OR', key: 'numOR' },
+            { header: 'Client', key: 'client' },
+            { header: 'Véhicule', key: 'vehicule' },
+            { header: 'Statut', key: 'statut' },
+            { header: 'Tâches', key: 'tachesList' },
+        ];
 
-    const formatted = result.map(or => ({
-        ...or,
-        tachesList: or.taches?.map(t => t.titre).join(', ') || '',
-    }));
+        const formatted = result.map(or => ({
+            ...or,
+            tachesList: or.taches?.map(t => t.titre).join(', ') || '',
+        }));
 
         await this.excelExportService.exportToExcel(formatted, columns, 'Ordres_Reparation', res);
     }
