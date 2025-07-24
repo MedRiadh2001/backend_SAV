@@ -5,8 +5,8 @@ import { Repository, MoreThan, Between } from 'typeorm';
 import { Historique } from '../entities/Historique.entity';
 import { Tache } from '../entities/Tache.entity';
 import { ScanBadgeDto } from '../types/dtos/scan_badge.dto';
-import { PointageType } from '../types/enums/TypePointage.enum';
-import { StatutTache } from '../types/enums/statutTache.enum';
+import { HistoriqueType  } from '../types/enums/TypePointage.enum';
+import { TaskStatus } from '../types/enums/statutTache.enum';
 import { OrdreReparationService } from './ordre-reparation.service';
 import { TaskActionDto } from '../types/dtos/task_action.dto';
 
@@ -33,12 +33,12 @@ export class HistoriqueService {
         todayStart.setHours(0, 0, 0, 0);
 
         const previousHist = await this.getLastType(dto.badgeId)
-        let type: PointageType;
+        let type: HistoriqueType;
         if (!previousHist) {
-            type = PointageType.ENTREE;
-        } else if (previousHist.type === PointageType.PAUSE) {
-            type = PointageType.REPRISE;
-        } else if (previousHist.type && dto.type === PointageType.ENTREE) {
+            type = HistoriqueType.ENTRY;
+        } else if (previousHist.type === HistoriqueType.BREAK) {
+            type = HistoriqueType.RESUME;
+        } else if (previousHist.type && dto.type === HistoriqueType.ENTRY) {
             throw new BadRequestException("Technicien déjà en entrée")
         } else {
             type = dto.type;
@@ -93,36 +93,36 @@ export class HistoriqueService {
         });
         if (!tache) throw new NotFoundException('Tâche non trouvée');
 
-        let type: PointageType;
+        let type: HistoriqueType;
         const now = new Date();
 
         const action = dto.action;
         switch (action) {
             case 'START_TASK':
-                if (tache.statut === StatutTache.NON_DEMAREE) {
-                    type = PointageType.WORKING;
-                } else if (tache.statut === StatutTache.EN_PAUSE) {
-                    type = PointageType.REPRISE_TACHE;
+                if (tache.statut === TaskStatus.NOT_STARTED) {
+                    type = HistoriqueType.WORKING;
+                } else if (tache.statut === TaskStatus.PAUSED) {
+                    type = HistoriqueType.TASK_RESUME;
                 } else {
                     throw new BadRequestException('Task already in progress or finished');
                 }
-                tache.statut = StatutTache.EN_COURS;
+                tache.statut = TaskStatus.IN_PROGRESS;
                 break;
 
             case 'PAUSE_TASK':
-                if (tache.statut !== StatutTache.EN_COURS) {
+                if (tache.statut !== TaskStatus.IN_PROGRESS) {
                     throw new BadRequestException('Task must be in progress to pause it');
                 }
-                tache.statut = StatutTache.EN_PAUSE;
-                type = PointageType.PAUSE_TACHE;
+                tache.statut = TaskStatus.PAUSED;
+                type = HistoriqueType.TASK_PAUSED;
                 break;
 
             case 'END_TASK':
-                if (tache.statut !== StatutTache.EN_COURS) {
+                if (tache.statut !== TaskStatus.IN_PROGRESS) {
                     throw new BadRequestException('Task must be in progress to finish it');
                 }
-                tache.statut = StatutTache.TERMINEE;
-                type = PointageType.FIN_TACHE;
+                tache.statut = TaskStatus.COMPLETED;
+                type = HistoriqueType.END_TASK;
                 break;
 
             default:

@@ -112,7 +112,7 @@ export class UserService {
         const user = await this.userRepo.findOneBy({ id });
         if (!user) throw new NotFoundException('Utilisateur non trouvé');
 
-        user.statut = UserStatus.INACTIF;
+        user.statut = UserStatus.INACTIV;
         return this.userRepo.save(user);
     }
 

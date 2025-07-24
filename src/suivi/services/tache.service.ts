@@ -4,7 +4,7 @@ import { IsNull, Not, Repository } from 'typeorm';
 import { OrdreReparation } from '../entities/OrdreReparation.entity';
 import { Tache } from '../entities/Tache.entity';
 import { CreateTacheDto } from '../types/dtos/create_tache.dto';
-import { StatutTache } from '../types/enums/statutTache.enum';
+import { TaskStatus } from '../types/enums/statutTache.enum';
 import { Historique } from '../entities/Historique.entity';
 
 @Injectable()
@@ -18,7 +18,7 @@ export class TacheService {
     async create(dto: CreateTacheDto) {
         const ordre = await this.orRepo.findOneBy({ id: dto.ordreReparationId });
         if (!ordre) throw new NotFoundException('Ordre de réparation non trouvé');
-        const tache = this.taskRepo.create({ ...dto, statut: StatutTache.NON_DEMAREE, ordreReparation: ordre });
+        const tache = this.taskRepo.create({ ...dto, statut: TaskStatus.NOT_STARTED, ordreReparation: ordre });
         return this.taskRepo.save(tache);
     }
 

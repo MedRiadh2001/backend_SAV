@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, OneToMany } from "typeorm";
 import { OrdreReparation } from "./OrdreReparation.entity";
-import { StatutTache } from "../types/enums/statutTache.enum";
+import { TaskStatus } from "../types/enums/statutTache.enum";
 import { IIdentifiable } from "src/shared/interfaces/IIdentifiable.interface";
 import { Historique } from "./Historique.entity";
 
@@ -19,9 +19,9 @@ export class Tache implements IIdentifiable {
     @ApiProperty({ required: false })
     details: string;
 
-    @Column({ type: 'enum', enum: StatutTache })
-    @ApiProperty({ enum: StatutTache })
-    statut: StatutTache;
+    @Column({ type: 'enum', enum: TaskStatus })
+    @ApiProperty({ enum: TaskStatus })
+    statut: TaskStatus;
 
     @ManyToOne(() => OrdreReparation, (or) => or.taches, { onDelete: 'CASCADE' })
     @ApiProperty({ type: () => OrdreReparation })

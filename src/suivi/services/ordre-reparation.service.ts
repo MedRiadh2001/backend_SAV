@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OrdreReparation } from '../entities/OrdreReparation.entity';
 import { CreateOrdreReparationDto } from '../types/dtos/create_ordre_reparation.dto';
-import { StatutOR } from '../types/enums/statutOR.enum';
+import { OrStatus } from '../types/enums/statutOR.enum';
 
 @Injectable()
 export class OrdreReparationService {
@@ -74,16 +74,16 @@ export class OrdreReparationService {
 
         const statuts = or.taches.map((t) => t.statut);
 
-        if (statuts.every((s) => s === 'NON_DEMAREE')) {
-            or.statut = StatutOR.NON_DEMARE;
-        } else if (statuts.every((s) => s === 'TERMINEE')) {
-            or.statut = StatutOR.TERMINE;
-        } else if (statuts.every((s) => s === 'EN_COURS' || s === 'EN_PAUSE')) {
-            or.statut = StatutOR.EN_COURS;
+        if (statuts.every((s) => s === 'NOT_STARTED')) {
+            or.statut = OrStatus.NOT_STARTED;
+        } else if (statuts.every((s) => s === 'COMPLETED')) {
+            or.statut = OrStatus.COMPLETED;
+        } else if (statuts.every((s) => s === 'IN_PROGRESS' || s === 'PAUSED')) {
+            or.statut = OrStatus.IN_PROGRESS;
         } else {
-            or.statut = StatutOR.EN_COURS;
+            or.statut = OrStatus.IN_PROGRESS;
         }
-
+        
         return this.ORrepo.save(or);
     }
 

@@ -1,10 +1,10 @@
-export enum PointageType {
-    ENTREE = 'ENTREE',
-    PAUSE = 'PAUSE',
-    REPRISE = 'REPRISE',
-    SORTIE = 'SORTIE',
+export enum HistoriqueType  {
+    ENTRY = 'ENTRY',
+    BREAK = 'BREAK',
+    RESUME = 'RESUME',
+    EXIT = 'EXIT',
     WORKING = 'WORKING',
-    FIN_TACHE = "FIN_TACHE",
-    PAUSE_TACHE = "PAUSE_TACHE",
-    REPRISE_TACHE = "REPRISE_TACHE",
+    END_TASK = 'END_TASK',
+    TASK_PAUSED = 'TASK_PAUSED',
+    TASK_RESUME = 'TASK_RESUME',
 }

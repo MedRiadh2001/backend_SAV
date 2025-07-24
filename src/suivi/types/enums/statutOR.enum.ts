@@ -1,5 +1,5 @@
-export enum StatutOR {
-  NON_DEMARE = 'NON_DEMARE',
-  EN_COURS = 'EN_COURS',
-  TERMINE = 'TERMINE',
+export enum OrStatus {
+    NOT_STARTED = 'NOT_STARTED',
+    IN_PROGRESS = 'IN_PROGRESS',
+    COMPLETED = 'COMPLETED',
 }

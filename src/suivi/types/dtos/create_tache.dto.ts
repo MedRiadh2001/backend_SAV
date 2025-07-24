@@ -1,5 +1,5 @@
 import { IsString, IsOptional, IsUUID, IsEnum } from "class-validator";
-import { StatutTache } from "../enums/statutTache.enum";
+import { TaskStatus } from "../enums/statutTache.enum";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class CreateTacheDto {
@@ -14,8 +14,8 @@ export class CreateTacheDto {
 
     @ApiPropertyOptional()
     @IsOptional()
-    @IsEnum(StatutTache)
-    statut?: StatutTache;
+    @IsEnum(TaskStatus)
+    statut?: TaskStatus;
 
     @ApiProperty()
     @IsUUID()

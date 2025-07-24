@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { User } from "src/UserModule/entities/User.entity";
 import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
-import { PointageType } from "../types/enums/TypePointage.enum";
+import { HistoriqueType } from "../types/enums/TypePointage.enum";
 import { Tache } from "./Tache.entity";
 import { IIdentifiable } from "src/shared/interfaces/IIdentifiable.interface";
 
@@ -19,9 +19,9 @@ export class Historique implements IIdentifiable{
     @ApiProperty({ type: () => Tache, required: false })
     tache?: Tache;
 
-    @Column({ type: 'enum', enum: PointageType, nullable:true })
-    @ApiProperty({ enum: PointageType })
-    type: PointageType;
+    @Column({ type: 'enum', enum: HistoriqueType, nullable:true , enumName:'historique_type_enum_v2'})
+    @ApiProperty({ enum: HistoriqueType })
+    type: HistoriqueType;
 
     @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     @ApiProperty()

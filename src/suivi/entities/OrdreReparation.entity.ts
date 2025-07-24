@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { Tache } from "./Tache.entity";
 import { IIdentifiable } from "src/shared/interfaces/IIdentifiable.interface";
-import { StatutOR } from "../types/enums/statutOR.enum";
+import { OrStatus } from "../types/enums/statutOR.enum";
 
 @Entity()
 export class OrdreReparation implements IIdentifiable {
@@ -22,9 +22,9 @@ export class OrdreReparation implements IIdentifiable {
     @ApiProperty()
     client: string;
 
-    @Column({ type: 'enum', enum: StatutOR, default: StatutOR.NON_DEMARE })
-    @ApiProperty({ enum: StatutOR })
-    statut: StatutOR;
+    @Column({ type: 'enum', enum: OrStatus, default: OrStatus.NOT_STARTED })
+    @ApiProperty({ enum: OrStatus })
+    statut: OrStatus;
 
     @OneToMany(() => Tache, (tache) => tache.ordreReparation)
     @ApiProperty({ type: () => Tache, isArray: true })
