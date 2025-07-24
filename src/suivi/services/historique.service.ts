@@ -40,7 +40,7 @@ export class HistoriqueService {
             type = PointageType.ENTREE;
         } else if (previousHist.type === PointageType.PAUSE) {
             type = PointageType.REPRISE;
-        } else if (previousHist.type && dto.type === PointageType.ENTREE){
+        } else if (previousHist.type && dto.type === PointageType.ENTREE) {
             throw new BadRequestException("Technicien déjà en entrée")
         } else {
             type = dto.type;
@@ -186,36 +186,25 @@ export class HistoriqueService {
         return this.historiqueRepo.save(hist);
     }
 
-    async findAll(day?: string, month?: string, year?: string) {
+    async findAll(startDate?: string, endDate?: string) {
         let whereClause = {};
 
-        if (day && month && year) {
-            const start = new Date(Number(year), Number(month) - 1, Number(day), 1, 0, 0, 0);
-            const end = new Date(Number(year), Number(month) - 1, Number(day), 23, 59, 59, 999);
+        if (startDate) {
+            const start = new Date(startDate);
+            start.setHours(0, 0, 0, 0);
 
-            whereClause = {
-                heure: Between(start, end),
-            };
-        } else if (month && year) {
-            const start = new Date(Number(year), Number(month) - 1, 1, 0, 0, 0);
-            const end = new Date(Number(year), Number(month), 0, 23, 59, 59, 999);
+            let end: Date;
 
-            whereClause = {
-                heure: Between(start, end),
-            };
-        } else if (month) {
-            const now = new Date();
-            const monthIndex = Number(month) - 1;
+            if (endDate) {
+                end = new Date(endDate);
+            } else {
+                end = new Date();
+            }
+            end.setHours(23, 59, 59, 999);
 
-            const start = new Date(now.getFullYear(), monthIndex, 1, 0, 0, 0);
-            const end = new Date(now.getFullYear(), monthIndex + 1, 0, 23, 59, 59, 999);
-
-            whereClause = {
-                heure: Between(start, end),
-            };
-        } else if (year) {
-            const start = new Date(Number(year), 0, 1, 0, 0, 0);
-            const end = new Date(Number(year), 11, 31, 23, 59, 59, 999);
+            if (start > end) {
+                throw new BadRequestException('startDate can not be greater then endDate');
+            }
 
             whereClause = {
                 heure: Between(start, end),

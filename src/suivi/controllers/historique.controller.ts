@@ -36,13 +36,24 @@ export class HistoriqueController {
         return this.service.recordEndTask(dto);
     }
 
+    // @Get()
+    // @ApiOperation({ summary: 'Lister tous les historiques' })
+    // @ApiQuery({ name: 'day', required: false})
+    // @ApiQuery({ name: 'month', required: false})
+    // @ApiQuery({ name: 'year', required: false})
+    // findAll(@Query('day') day?: string, @Query('month') month?: string, @Query('year') year?: string,) {
+    //     return this.service.findAll(day, month, year);
+    // }
+
     @Get()
-    @ApiOperation({ summary: 'Lister tous les historiques' })
-    @ApiQuery({ name: 'day', required: false})
-    @ApiQuery({ name: 'month', required: false})
-    @ApiQuery({ name: 'year', required: false})
-    findAll(@Query('day') day?: string, @Query('month') month?: string, @Query('year') year?: string,) {
-        return this.service.findAll(day, month, year);
+    @ApiOperation({ summary: 'Lister tous les historiques entre deux dates' })
+    @ApiQuery({ name: 'startDate', required: false, description: 'Date de début (YYYY-MM-DD)' })
+    @ApiQuery({ name: 'endDate', required: false, description: 'Date de fin (YYYY-MM-DD), aujourd’hui par défaut si manquant' })
+    findAll(
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string,
+    ) {
+        return this.service.findAll(startDate, endDate);
     }
 
     @Get('all/:technicienId')
