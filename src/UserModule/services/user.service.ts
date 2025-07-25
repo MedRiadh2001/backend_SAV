@@ -38,7 +38,7 @@ export class UserService {
                 role: { id: roleId }
             }
         }
-        
+
         const [result, total] = await this.userRepo.findAndCount({
             where: whereClause,
             relations: ['role', 'role.rolePermissions.permission'],
@@ -119,7 +119,7 @@ export class UserService {
         const user = await this.userRepo.findOneBy({ id });
         if (!user) throw new NotFoundException('Utilisateur non trouvé');
 
-        user.statut = UserStatus.INACTIV;
+        user.statut = UserStatus.INACTIVE;
         return this.userRepo.save(user);
     }
 

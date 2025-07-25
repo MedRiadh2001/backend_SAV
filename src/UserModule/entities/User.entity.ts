@@ -26,7 +26,7 @@ export class User implements IIdentifiable {
     @ApiProperty()
     firstName: string;
 
-    @Column({ type: 'enum', enum: UserStatus, default: UserStatus.ACTIV })
+    @Column({ type: 'enum', enum: UserStatus, default: UserStatus.ACTIVE })
     @ApiProperty({ enum: UserStatus })
     statut: UserStatus;
 
