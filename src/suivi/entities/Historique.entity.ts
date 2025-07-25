@@ -3,10 +3,10 @@ import { User } from "src/UserModule/entities/User.entity";
 import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { HistoriqueType } from "../types/enums/TypePointage.enum";
 import { Tache } from "./Tache.entity";
-import { IIdentifiable } from "src/shared/interfaces/IIdentifiable.interface";
+import { IHistorique } from "../types/interfaces/IHistorique.interface";
 
 @Entity()
-export class Historique implements IIdentifiable{
+export class Historique implements IHistorique{
     @PrimaryGeneratedColumn('uuid')
     @ApiProperty()
     id: string;

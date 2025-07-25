@@ -2,10 +2,10 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, Up
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../UserModule/entities/User.entity';
 import { RolePermission } from './RolePermission.entity';
-import { IIdentifiable } from 'src/shared/interfaces/IIdentifiable.interface';
+import { IRole } from '../types/interfaces/IRole.interface';
 
 @Entity()
-export class Role implements IIdentifiable{
+export class Role implements IRole{
     @PrimaryGeneratedColumn('uuid')
     @ApiProperty()
     id: string;

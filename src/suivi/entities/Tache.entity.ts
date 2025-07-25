@@ -4,9 +4,10 @@ import { OrdreReparation } from "./OrdreReparation.entity";
 import { TaskStatus } from "../types/enums/statutTache.enum";
 import { IIdentifiable } from "src/shared/interfaces/IIdentifiable.interface";
 import { Historique } from "./Historique.entity";
+import { ITache } from "../types/interfaces/ITache.interface";
 
 @Entity()
-export class Tache implements IIdentifiable {
+export class Tache implements ITache {
     @PrimaryGeneratedColumn('uuid')
     @ApiProperty()
     id: string;

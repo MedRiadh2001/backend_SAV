@@ -9,10 +9,10 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { Role } from './Role.entity';
 import { Permission } from './Permission.entity';
-import { IIdentifiable } from 'src/shared/interfaces/IIdentifiable.interface';
+import { IRolePermission } from '../types/interfaces/IRolePermission.interface';
 
 @Entity()
-export class RolePermission implements IIdentifiable {
+export class RolePermission implements IRolePermission {
     @PrimaryGeneratedColumn('uuid')
     @ApiProperty()
     id: string;

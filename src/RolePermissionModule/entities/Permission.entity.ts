@@ -1,10 +1,10 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { RolePermission } from './RolePermission.entity';
-import { IIdentifiable } from 'src/shared/interfaces/IIdentifiable.interface';
+import { IPermission } from '../types/interfaces/IPermission.interface';
 
 @Entity()
-export class Permission implements IIdentifiable {
+export class Permission implements IPermission {
     @PrimaryGeneratedColumn('uuid')
     @ApiProperty()
     id: string;

@@ -1,11 +1,11 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { Tache } from "./Tache.entity";
-import { IIdentifiable } from "src/shared/interfaces/IIdentifiable.interface";
 import { OrStatus } from "../types/enums/statutOR.enum";
+import { IOrdreReparation } from "../types/interfaces/IOrdreReparation.interface";
 
 @Entity()
-export class OrdreReparation implements IIdentifiable {
+export class OrdreReparation implements IOrdreReparation {
     @PrimaryGeneratedColumn('uuid')
     @ApiProperty()
     id: string;
