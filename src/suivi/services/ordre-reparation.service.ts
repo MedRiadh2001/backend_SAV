@@ -15,7 +15,7 @@ export class OrdreReparationService {
 
     async findAllToExport(page = 1, items = 10) {
         const [result, total] = await this.ORrepo.findAndCount({
-            relations: ['taches'],
+            relations: ['task'],
             skip: (page - 1) * items,
             take: items,
         });
@@ -34,7 +34,7 @@ export class OrdreReparationService {
 
     async findAll(page = 1, items = 10, keyword?: string) {
         const qb = this.ORrepo.createQueryBuilder('or')
-            .leftJoinAndSelect('or.taches', 'tache')
+            .leftJoinAndSelect('or.tasks', 'tache')
             .skip((page - 1) * items)
             .take(items);
 
@@ -61,13 +61,13 @@ export class OrdreReparationService {
 
 
     findOne(id: string) {
-        return this.ORrepo.findOne({ where: { id }, relations: ['taches'] });
+        return this.ORrepo.findOne({ where: { id }, relations: ['tasks'] });
     }
 
     async updateStatutOR(orId: string) {
         const or = await this.ORrepo.findOne({
             where: { id: orId },
-            relations: ['taches'],
+            relations: ['tasks'],
         });
 
         if (!or) throw new BadRequestException('Ordre de réparation non trouvé');

@@ -172,7 +172,7 @@ export class HistoriqueService {
 
         return this.historiqueRepo.find({
             where: whereClause,
-            relations: ['technicien', 'tache'],
+            relations: ['technicien', 'task'],
             order: { heure: 'ASC' },
         });
     }
@@ -180,7 +180,7 @@ export class HistoriqueService {
     async findByTechnicien(id: string) {
         return this.historiqueRepo.find({
             where: { technicien: { id } },
-            relations: ['technicien', 'tache']
+            relations: ['technicien', 'task']
         })
     }
 
@@ -196,7 +196,7 @@ export class HistoriqueService {
                 technicien: { id },
                 heure: Between(todayStart, todayEnd)
             },
-            relations: ['technicien', 'tache'],
+            relations: ['technicien', 'task'],
             order: { heure: 'ASC' }
         })
     }
