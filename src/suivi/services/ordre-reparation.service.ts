@@ -15,7 +15,7 @@ export class OrdreReparationService {
 
     async findAllToExport(page = 1, items = 10) {
         const [result, total] = await this.ORrepo.findAndCount({
-            relations: ['task'],
+            relations: ['tasks'],
             skip: (page - 1) * items,
             take: items,
         });
