@@ -1,11 +1,11 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/UserModule/entities/User.entity';
-import { Repository, MoreThan, Between } from 'typeorm';
+import { Repository, MoreThan, Between, In } from 'typeorm';
 import { Historique } from '../entities/Historique.entity';
 import { Tache } from '../entities/Tache.entity';
 import { ScanBadgeDto } from '../types/dtos/scan_badge.dto';
-import { HistoriqueType  } from '../types/enums/TypePointage.enum';
+import { HistoriqueType } from '../types/enums/TypePointage.enum';
 import { TaskStatus } from '../types/enums/statutTache.enum';
 import { OrdreReparationService } from './ordre-reparation.service';
 import { TaskActionDto } from '../types/dtos/task_action.dto';
@@ -40,11 +40,11 @@ export class HistoriqueService {
             type = HistoriqueType.RESUME;
         } else if (previousHist.type && dto.type === HistoriqueType.ENTRY) {
             throw new BadRequestException("Technicien déjà en entrée")
+        } else if (previousHist.type === HistoriqueType.EXIT && dto.type === HistoriqueType.EXIT) {
+            throw new BadRequestException("Technicien has exit")
         } else {
             type = dto.type;
         }
-
-
 
         if (type) {
             const newHist = this.historiqueRepo.create({
@@ -99,6 +99,18 @@ export class HistoriqueService {
         const action = dto.action;
         switch (action) {
             case 'START_TASK':
+                const existingTask = await this.historiqueRepo.findOne({
+                    where: {
+                        technicien: { id: user.id },
+                        type: In([HistoriqueType.WORKING, HistoriqueType.TASK_RESUME]),
+                    },
+                    order: { heure: 'DESC' },
+                });
+
+                if (existingTask) {
+                    throw new BadRequestException('Ce technicien a déjà une tâche en cours.');
+                }
+
                 if (task.statut === TaskStatus.NOT_STARTED) {
                     type = HistoriqueType.WORKING;
                 } else if (task.statut === TaskStatus.PAUSED) {
@@ -120,6 +132,18 @@ export class HistoriqueService {
             case 'END_TASK':
                 if (task.statut !== TaskStatus.IN_PROGRESS) {
                     throw new BadRequestException('Task must be in progress to finish it');
+                }
+                const lastStart = await this.historiqueRepo.findOne({
+                    where: {
+                        task: { id: dto.tacheId },
+                        type: In([HistoriqueType.WORKING, HistoriqueType.TASK_RESUME]),
+                    },
+                    order: { heure: 'DESC' },
+                    relations: ['technicien'],
+                });
+
+                if (!lastStart || lastStart.technicien.id !== user.id) {
+                    throw new BadRequestException('Seul le technicien ayant démarré la tâche peut la clôturer.');
                 }
                 task.statut = TaskStatus.COMPLETED;
                 type = HistoriqueType.END_TASK;
@@ -145,8 +169,10 @@ export class HistoriqueService {
         return this.historiqueRepo.save(historique);
     }
 
-    async findAll(startDate?: string, endDate?: string) {
-        let whereClause = {};
+    async findAll(id: string, startDate?: string, endDate?: string) {
+        const whereClause: any = {
+            technicien: { id },
+        };
 
         if (startDate) {
             const start = new Date(startDate);
@@ -165,39 +191,34 @@ export class HistoriqueService {
                 throw new BadRequestException('startDate can not be greater then endDate');
             }
 
-            whereClause = {
-                heure: Between(start, end),
-            };
+            whereClause.heure = Between(start, end);
         }
 
+        return this.findByTechnicien(whereClause)
+    }
+
+    async findByTechnicien(whereClause: {}) {
         return this.historiqueRepo.find({
             where: whereClause,
-            relations: ['technicien', 'task'],
-            order: { heure: 'ASC' },
-        });
-    }
-
-    async findByTechnicien(id: string) {
-        return this.historiqueRepo.find({
-            where: { technicien: { id } },
-            relations: ['technicien', 'task']
-        })
-    }
-
-    async findByTechnicienToday(id: string) {
-        const todayStart = new Date();
-        todayStart.setHours(0, 0, 0, 0);
-
-        const todayEnd = new Date();
-        todayEnd.setHours(23, 59, 59, 999);
-
-        return this.historiqueRepo.find({
-            where: {
-                technicien: { id },
-                heure: Between(todayStart, todayEnd)
-            },
             relations: ['technicien', 'task'],
             order: { heure: 'ASC' }
         })
     }
+
+    // async findByTechnicienToday(id: string) {
+    //     const todayStart = new Date();
+    //     todayStart.setHours(0, 0, 0, 0);
+
+    //     const todayEnd = new Date();
+    //     todayEnd.setHours(23, 59, 59, 999);
+
+    //     return this.historiqueRepo.find({
+    //         where: {
+    //             technicien: { id },
+    //             heure: Between(todayStart, todayEnd)
+    //         },
+    //         relations: ['technicien', 'task'],
+    //         order: { heure: 'ASC' }
+    //     })
+    // }
 }

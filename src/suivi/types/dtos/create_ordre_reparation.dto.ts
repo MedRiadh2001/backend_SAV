@@ -1,5 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import { IsArray, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { CreateTacheDto } from './create_tache.dto';
 
 export class CreateOrdreReparationDto {
     @ApiProperty()
@@ -13,4 +15,11 @@ export class CreateOrdreReparationDto {
     @ApiProperty()
     @IsString()
     client: string;
+
+    @IsOptional()
+    @ApiPropertyOptional({ type: [CreateTacheDto] })
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => CreateTacheDto)
+    taches?: CreateTacheDto[];
 }

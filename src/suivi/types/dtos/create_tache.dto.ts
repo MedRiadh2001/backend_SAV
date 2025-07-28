@@ -17,7 +17,8 @@ export class CreateTacheDto {
     @IsEnum(TaskStatus)
     statut?: TaskStatus;
 
-    @ApiProperty()
+    @ApiPropertyOptional()
+    @IsOptional()
     @IsUUID()
-    ordreReparationId: string;
+    ordreReparationId?: string;
 }

@@ -30,26 +30,27 @@ export class HistoriqueController {
 @Controller('backoffice')
 export class HistoriqueBackofficeController {
     constructor(private readonly historiqueService: HistoriqueService) { }
-    @Get('activity')
+    @Get('activity/:technicienId')
     @ApiOperation({ summary: 'Lister tous les historiques entre deux dates' })
     @ApiQuery({ name: 'startDate', required: false, description: 'Date de début (YYYY-MM-DD)' })
     @ApiQuery({ name: 'endDate', required: false, description: 'Date de fin (YYYY-MM-DD), aujourd’hui par défaut si manquant' })
     findAll(
+        @Param('technicienId', new ParseUUIDPipe()) id: string,
         @Query('startDate') startDate?: string,
         @Query('endDate') endDate?: string,
     ) {
-        return this.historiqueService.findAll(startDate, endDate);
+        return this.historiqueService.findAll(id, startDate, endDate);
     }
 
-    @Get('activity/all/:technicienId')
-    @ApiOperation({ summary: "Lister l'historique d'un technicien" })
-    findByTechnicien(@Param('technicienId', new ParseUUIDPipe()) id: string) {
-        return this.historiqueService.findByTechnicien(id);
-    }
+    // @Get('activity/all/:technicienId')
+    // @ApiOperation({ summary: "Lister l'historique d'un technicien" })
+    // findByTechnicien(@Param('technicienId', new ParseUUIDPipe()) id: string) {
+    //     return this.historiqueService.findByTechnicien(id);
+    // }
 
-    @Get('activity/today/:technicienId')
-    @ApiOperation({ summary: "Lister l'historique d'un technicien pour le jour courant uniquement" })
-    findByTechnicienToday(@Param('technicienId', new ParseUUIDPipe()) id: string) {
-        return this.historiqueService.findByTechnicienToday(id);
-    }
+    // @Get('activity/today/:technicienId')
+    // @ApiOperation({ summary: "Lister l'historique d'un technicien pour le jour courant uniquement" })
+    // findByTechnicienToday(@Param('technicienId', new ParseUUIDPipe()) id: string) {
+    //     return this.historiqueService.findByTechnicienToday(id);
+    // }
 }

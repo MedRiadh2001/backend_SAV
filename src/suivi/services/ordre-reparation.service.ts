@@ -4,13 +4,37 @@ import { Repository } from 'typeorm';
 import { OrdreReparation } from '../entities/OrdreReparation.entity';
 import { CreateOrdreReparationDto } from '../types/dtos/create_ordre_reparation.dto';
 import { OrStatus } from '../types/enums/statutOR.enum';
+import { Tache } from '../entities/Tache.entity';
+import { TaskStatus } from '../types/enums/statutTache.enum';
 
 @Injectable()
 export class OrdreReparationService {
-    constructor(@InjectRepository(OrdreReparation) private ORrepo: Repository<OrdreReparation>) { }
+    constructor(
+        @InjectRepository(OrdreReparation) private ORrepo: Repository<OrdreReparation>,
+        @InjectRepository(Tache) private tacheRepo: Repository<Tache>
+    ) { }
 
-    create(dto: CreateOrdreReparationDto) {
-        return this.ORrepo.save(this.ORrepo.create(dto));
+    async create(dto: CreateOrdreReparationDto) {
+        const { taches, ...orData } = dto;
+
+        const ordreReparation = this.ORrepo.create(orData);
+        const savedOR = await this.ORrepo.save(ordreReparation);
+
+        if (taches?.length) {
+            for (const tacheDto of taches) {
+                const tache = this.tacheRepo.create({
+                    ...tacheDto,
+                    statut: TaskStatus.NOT_STARTED,
+                    ordreReparation: savedOR,
+                });
+                await this.tacheRepo.save(tache);
+            }
+        }
+
+        return {
+            savedOR,
+            taches
+        };
     }
 
     async findAllToExport(page = 1, items = 10) {
@@ -83,7 +107,7 @@ export class OrdreReparationService {
         } else {
             or.statut = OrStatus.IN_PROGRESS;
         }
-        
+
         return this.ORrepo.save(or);
     }
 
