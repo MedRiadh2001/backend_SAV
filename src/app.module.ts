@@ -6,6 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RolePermisionModule } from './RolePermissionModule/rolePermision.module';
 import { UserModule } from './UserModule/user.module';
 import { SuiviModule } from './suivi/suivi.module';
+import { ConfigurationModule } from './configuration/configuration.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { SuiviModule } from './suivi/suivi.module';
     RolePermisionModule,
     UserModule,
     SuiviModule,
+    ConfigurationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

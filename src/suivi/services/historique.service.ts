@@ -9,6 +9,7 @@ import { HistoriqueType } from '../types/enums/TypePointage.enum';
 import { TaskStatus } from '../types/enums/statutTache.enum';
 import { OrdreReparationService } from './ordre-reparation.service';
 import { TaskActionDto } from '../types/dtos/task_action.dto';
+import { ConfigurationService } from 'src/configuration/services/configuration.service';
 
 @Injectable()
 export class HistoriqueService {
@@ -17,6 +18,7 @@ export class HistoriqueService {
         @InjectRepository(User) private userRepo: Repository<User>,
         @InjectRepository(Tache) private tacheRepo: Repository<Tache>,
         private ordreReparationService: OrdreReparationService,
+        private readonly configService: ConfigurationService,
     ) { }
 
     async scanBadge(dto: ScanBadgeDto) {
@@ -79,6 +81,8 @@ export class HistoriqueService {
     }
 
     async taskAction(dto: TaskActionDto) {
+        const config = await this.configService.get();
+
         const user = await this.userRepo.findOne({
             where: { badgeId: dto.badgeId },
             relations: ['role'],
@@ -99,26 +103,65 @@ export class HistoriqueService {
         const action = dto.action;
         switch (action) {
             case 'START_TASK':
-                const existingTask = await this.historiqueRepo.findOne({
-                    where: {
-                        technicien: { id: user.id },
-                        type: In([HistoriqueType.WORKING, HistoriqueType.TASK_RESUME]),
-                    },
-                    order: { heure: 'DESC' },
-                });
+                if (!config.parallelTasksPerTechnician) {
+                    const lastStart = await this.historiqueRepo.findOne({
+                        where: {
+                            technicien: { id: user.id },
+                            type: In([HistoriqueType.WORKING, HistoriqueType.TASK_RESUME]),
+                        },
+                        order: { heure: 'DESC' },
+                        relations: ['task'],
+                    });
 
-                if (existingTask) {
-                    throw new BadRequestException('Ce technicien a déjà une tâche en cours.');
+                    if (lastStart) {
+                        const lastEnd = await this.historiqueRepo.findOne({
+                            where: {
+                                technicien: { id: user.id },
+                                task: { id: lastStart.task.id },
+                                type: HistoriqueType.END_TASK,
+                                heure: MoreThan(lastStart.heure),
+                            },
+                        });
+
+                        if (!lastEnd) {
+                            throw new BadRequestException('Ce technicien a déjà une tâche en cours.');
+                        }
+                    }
                 }
 
-                if (task.statut === TaskStatus.NOT_STARTED) {
-                    type = HistoriqueType.WORKING;
-                } else if (task.statut === TaskStatus.PAUSED) {
-                    type = HistoriqueType.TASK_RESUME;
+                if (!config.multiTechniciansPerTask) {
+                    const autreTechnicien = await this.historiqueRepo.findOne({
+                        where: {
+                            task: { id: dto.tacheId },
+                            type: In([HistoriqueType.WORKING, HistoriqueType.TASK_RESUME]),
+                        },
+                        order: { heure: 'DESC' },
+                        relations: ['technicien'],
+                    });
+
+                    if (autreTechnicien && autreTechnicien.technicien.id !== user.id) {
+                        throw new BadRequestException('Un autre technicien travaille déjà sur cette tâche.');
+                    }
+                }
+
+                if (
+                    task.statut === TaskStatus.NOT_STARTED ||
+                    task.statut === TaskStatus.PAUSED ||
+                    (task.statut === TaskStatus.IN_PROGRESS && config.multiTechniciansPerTask)
+                ) {
+                    if (task.statut === TaskStatus.NOT_STARTED) {
+                        type = HistoriqueType.WORKING;
+                        task.statut = TaskStatus.IN_PROGRESS;
+                    } else if (task.statut === TaskStatus.PAUSED) {
+                        type = HistoriqueType.TASK_RESUME;
+                        task.statut = TaskStatus.IN_PROGRESS;
+                    } else {
+                        type = HistoriqueType.TASK_RESUME;
+                    }
                 } else {
                     throw new BadRequestException('Task already in progress or finished');
                 }
-                task.statut = TaskStatus.IN_PROGRESS;
+
                 break;
 
             case 'PAUSE_TASK':
@@ -133,6 +176,7 @@ export class HistoriqueService {
                 if (task.statut !== TaskStatus.IN_PROGRESS) {
                     throw new BadRequestException('Task must be in progress to finish it');
                 }
+
                 const lastStart = await this.historiqueRepo.findOne({
                     where: {
                         task: { id: dto.tacheId },
@@ -142,9 +186,32 @@ export class HistoriqueService {
                     relations: ['technicien'],
                 });
 
-                if (!lastStart || lastStart.technicien.id !== user.id) {
-                    throw new BadRequestException('Seul le technicien ayant démarré la tâche peut la clôturer.');
+                if (config.onlyCreatorEndTask) {
+                    if (!lastStart || lastStart.technicien.id !== user.id) {
+                        throw new BadRequestException('Seul le technicien ayant démarré la tâche peut la clôturer.');
+                    }
                 }
+
+                const actifs = await this.historiqueRepo.find({
+                    where: {
+                        task: { id: task.id },
+                        type: In([HistoriqueType.WORKING, HistoriqueType.TASK_RESUME]),
+                    },
+                    relations: ['technicien'],
+                });
+
+                for (const h of actifs) {
+                    if (h.technicien.id !== user.id) {
+                        const histFin = this.historiqueRepo.create({
+                            technicien: h.technicien,
+                            task,
+                            type: HistoriqueType.END_TASK,
+                            heure: now,
+                        });
+                        await this.historiqueRepo.save(histFin);
+                    }
+                }
+
                 task.statut = TaskStatus.COMPLETED;
                 type = HistoriqueType.END_TASK;
                 break;

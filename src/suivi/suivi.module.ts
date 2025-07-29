@@ -12,11 +12,13 @@ import { HistoriqueService } from './services/historique.service';
 import { UserModule } from 'src/UserModule/user.module';
 import { User } from 'src/UserModule/entities/User.entity';
 import { ExcelExportService } from 'src/shared/excel_export.service';
+import { ConfigurationModule } from 'src/configuration/configuration.module';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Historique, OrdreReparation, Tache, User]),
-        UserModule
+        UserModule,
+        ConfigurationModule
     ],
     controllers: [OrdreReparationController, TacheController, HistoriqueController, HistoriqueBackofficeController, OrdreReparationBackofficeController],
     providers: [OrdreReparationService, TacheService, HistoriqueService, ExcelExportService],
