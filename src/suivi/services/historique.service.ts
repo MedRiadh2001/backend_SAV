@@ -123,7 +123,9 @@ export class HistoriqueService {
                             },
                         });
 
-                        if (!lastEnd) {
+                        const isSameTask = lastStart.task.id === dto.tacheId;
+
+                        if (!lastEnd && !isSameTask) {
                             throw new BadRequestException('Ce technicien a déjà une tâche en cours.');
                         }
                     }
@@ -168,27 +170,53 @@ export class HistoriqueService {
                 if (task.statut !== TaskStatus.IN_PROGRESS) {
                     throw new BadRequestException('Task must be in progress to pause it');
                 }
+
+                const hasWorked = await this.historiqueRepo.findOne({
+                    where: {
+                        task: { id: task.id },
+                        technicien: { id: user.id },
+                        type: In([HistoriqueType.WORKING, HistoriqueType.TASK_RESUME]),
+                    },
+                });
+
+                if (!hasWorked) {
+                    throw new BadRequestException('Vous n\'êtes pas autorisé à mettre en pause cette tâche.');
+                }
+
                 task.statut = TaskStatus.PAUSED;
                 type = HistoriqueType.TASK_PAUSED;
                 break;
+
 
             case 'END_TASK':
                 if (task.statut !== TaskStatus.IN_PROGRESS) {
                     throw new BadRequestException('Task must be in progress to finish it');
                 }
 
-                const lastStart = await this.historiqueRepo.findOne({
+                const createur = await this.historiqueRepo.findOne({
                     where: {
                         task: { id: dto.tacheId },
-                        type: In([HistoriqueType.WORKING, HistoriqueType.TASK_RESUME]),
+                        type: HistoriqueType.WORKING,
                     },
-                    order: { heure: 'DESC' },
+                    order: { heure: 'ASC' },
                     relations: ['technicien'],
                 });
 
                 if (config.onlyCreatorEndTask) {
-                    if (!lastStart || lastStart.technicien.id !== user.id) {
+                    if (!createur || createur.technicien.id !== user.id) {
                         throw new BadRequestException('Seul le technicien ayant démarré la tâche peut la clôturer.');
+                    }
+                } else {
+                    const participation = await this.historiqueRepo.findOne({
+                        where: {
+                            task: { id: dto.tacheId },
+                            technicien: { id: user.id },
+                            type: In([HistoriqueType.WORKING, HistoriqueType.TASK_RESUME]),
+                        },
+                    });
+
+                    if (!participation) {
+                        throw new BadRequestException('Ce technicien n’a pas participé à la tâche.');
                     }
                 }
 
@@ -201,7 +229,16 @@ export class HistoriqueService {
                 });
 
                 for (const h of actifs) {
-                    if (h.technicien.id !== user.id) {
+                    const alreadyEnded = await this.historiqueRepo.findOne({
+                        where: {
+                            task: { id: task.id },
+                            technicien: { id: h.technicien.id },
+                            type: HistoriqueType.END_TASK,
+                            heure: MoreThan(h.heure),
+                        },
+                    });
+
+                    if (!alreadyEnded) {
                         const histFin = this.historiqueRepo.create({
                             technicien: h.technicien,
                             task,
