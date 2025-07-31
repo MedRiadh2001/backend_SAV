@@ -56,7 +56,7 @@ export class OrdreReparationService {
         };
     }
 
-    async findAll(page = 1, items = 10, keyword?: string, startDate?: string, endDate?: string, OrStatut?: OrStatus) {
+    async findAll(page = 1, items = 10, keyword?: string, startDate?: string, endDate?: string, OrStatut?: string[]) {
         const qb = this.ORrepo.createQueryBuilder('or')
             .leftJoinAndSelect('or.tasks', 'tache')
             .skip((page - 1) * items)
@@ -84,7 +84,8 @@ export class OrdreReparationService {
         }
 
         if (OrStatut) {
-            qb.andWhere('or.statut = :status', { status: OrStatut });
+            const statuts = Array.isArray(OrStatut) ? OrStatut : [OrStatut];
+            qb.andWhere('or.statut IN (:...statuts)', { statuts });
         }
 
         const [result, total] = await qb.getManyAndCount();
@@ -100,7 +101,6 @@ export class OrdreReparationService {
             nextPage,
         };
     }
-
 
     findOne(id: string) {
         return this.ORrepo.findOne({ where: { id }, relations: ['tasks'] });
