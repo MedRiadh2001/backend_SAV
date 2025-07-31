@@ -274,8 +274,13 @@ export class HistoriqueService {
     }
 
     async findAll(id: string, startDate?: string, endDate?: string) {
+        const user = await this.userRepo.findOne({ where: { id } })
+        if (!user) {
+            throw new BadRequestException('user not found')
+        }
+
         const whereClause: any = {
-            technicien: { id },
+            technicien: { id: user.id },
         };
 
         if (startDate) {
