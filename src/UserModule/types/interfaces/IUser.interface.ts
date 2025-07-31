@@ -10,4 +10,5 @@ export interface IUser extends IIdentifiable {
     statut: UserStatus;
     badgeId: string;
     role: IRole | string;
+    isTechnician: boolean;
 }
