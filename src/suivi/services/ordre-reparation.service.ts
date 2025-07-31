@@ -56,7 +56,7 @@ export class OrdreReparationService {
         };
     }
 
-    async findAll(page = 1, items = 10, keyword?: string) {
+    async findAll(page = 1, items = 10, keyword?: string, startDate?: string, endDate?: string, OrStatut?: OrStatus) {
         const qb = this.ORrepo.createQueryBuilder('or')
             .leftJoinAndSelect('or.tasks', 'tache')
             .skip((page - 1) * items)
@@ -67,6 +67,24 @@ export class OrdreReparationService {
                 `(LOWER(or.vehicule) LIKE :kw OR LOWER(or.client) LIKE :kw OR CAST(or.numOR AS TEXT) LIKE :kw)`,
                 { kw: `%${keyword.toLowerCase()}%` }
             );
+        }
+
+        if (startDate) {
+            const start = new Date(startDate);
+            start.setHours(0, 0, 0, 0);
+
+            const end = endDate ? new Date(endDate) : new Date();
+            end.setHours(23, 59, 59, 999);
+
+            if (start > end) {
+                throw new BadRequestException('startDate ne peut pas être après endDate.');
+            }
+
+            qb.andWhere('or.createdAt BETWEEN :start AND :end', { start, end });
+        }
+
+        if (OrStatut) {
+            qb.andWhere('or.statut = :status', { status: OrStatut });
         }
 
         const [result, total] = await qb.getManyAndCount();
@@ -82,6 +100,7 @@ export class OrdreReparationService {
             nextPage,
         };
     }
+
 
 
     findOne(id: string) {

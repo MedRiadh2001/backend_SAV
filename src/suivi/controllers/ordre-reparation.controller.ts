@@ -4,6 +4,7 @@ import { CreateOrdreReparationDto } from '../types/dtos/create_ordre_reparation.
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ExcelExportService } from 'src/shared/excel_export.service';
 import { Response } from 'express';
+import { OrStatus } from '../types/enums/statutOR.enum';
 
 @ApiTags('RepairOrders')
 @Controller('backoffice/RepairOrders')
@@ -42,11 +43,21 @@ export class OrdreReparationBackofficeController {
     @ApiQuery({ name: 'page', required: false })
     @ApiQuery({ name: 'items', required: false })
     @ApiQuery({ name: 'keyword', required: false })
-    findAll(@Query('page') page?: number, @Query('items') items?: number, @Query('keyword') keyword?: string) {
-        return this.ORService.findAll(page, items, keyword);
+    @ApiQuery({ name: 'startDate', required: false, description: 'Date de début (YYYY-MM-DD)' })
+    @ApiQuery({ name: 'endDate', required: false, description: 'Date de fin (YYYY-MM-DD), aujourd\'hui par défaut si manquant' })
+    @ApiQuery({name: 'OrStatut', required: false, description: 'Statut de l\'OR'})
+    findAll(
+        @Query('page') page?: number,
+        @Query('items') items?: number,
+        @Query('keyword') keyword?: string,
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string,
+        @Query('OrStatut') OrStatus?: OrStatus
+    ) {
+        return this.ORService.findAll(page, items, keyword, startDate, endDate, OrStatus);
     }
 
-    
+
     @Get(':id')
     findOne(@Param('id', new ParseUUIDPipe()) id: string) {
         return this.ORService.findOne(id);
