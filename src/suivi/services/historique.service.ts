@@ -86,31 +86,45 @@ export class HistoriqueService {
         if (!user || user.role.name.toLowerCase() !== 'technicien') {
             throw new ForbiddenException();
         }
-
+ 
         const task = await this.tacheRepo.findOne({
             where: { id: dto.tacheId },
             relations: ['ordreReparation'],
         });
         if (!task) throw new NotFoundException('Tâche non trouvée');
-
+ 
         let type: HistoriqueType;
         const now = new Date();
-
+ 
         const action = dto.action;
         switch (action) {
             case 'START_TASK':
-                const existingTask = await this.historiqueRepo.findOne({
+                const lastStart = await this.historiqueRepo.findOne({
                     where: {
                         technicien: { id: user.id },
                         type: In([HistoriqueType.WORKING, HistoriqueType.TASK_RESUME]),
                     },
                     order: { heure: 'DESC' },
+                    relations: ['task'],
                 });
-
-                if (existingTask) {
-                    throw new BadRequestException('Ce technicien a déjà une tâche en cours.');
+ 
+                if (lastStart) {
+                    const lastEnd = await this.historiqueRepo.findOne({
+                        where: {
+                            technicien: { id: user.id },
+                            task: { id: lastStart.task.id },
+                            type: HistoriqueType.END_TASK,
+                            heure: MoreThan(lastStart.heure),
+                        },
+                    });
+ 
+                    const isSameTask = lastStart.task.id === dto.tacheId;
+ 
+                    if (!lastEnd && !isSameTask) {
+                        throw new BadRequestException('Ce technicien a déjà une tâche en cours.');
+                    }
                 }
-
+ 
                 if (task.statut === TaskStatus.NOT_STARTED) {
                     type = HistoriqueType.WORKING;
                 } else if (task.statut === TaskStatus.PAUSED) {
@@ -120,7 +134,7 @@ export class HistoriqueService {
                 }
                 task.statut = TaskStatus.IN_PROGRESS;
                 break;
-
+ 
             case 'PAUSE_TASK':
                 if (task.statut !== TaskStatus.IN_PROGRESS) {
                     throw new BadRequestException('Task must be in progress to pause it');
@@ -128,12 +142,12 @@ export class HistoriqueService {
                 task.statut = TaskStatus.PAUSED;
                 type = HistoriqueType.TASK_PAUSED;
                 break;
-
+ 
             case 'END_TASK':
                 if (task.statut !== TaskStatus.IN_PROGRESS) {
                     throw new BadRequestException('Task must be in progress to finish it');
                 }
-                const lastStart = await this.historiqueRepo.findOne({
+                const lastStartTask = await this.historiqueRepo.findOne({
                     where: {
                         task: { id: dto.tacheId },
                         type: In([HistoriqueType.WORKING, HistoriqueType.TASK_RESUME]),
@@ -141,31 +155,31 @@ export class HistoriqueService {
                     order: { heure: 'DESC' },
                     relations: ['technicien'],
                 });
-
-                if (!lastStart || lastStart.technicien.id !== user.id) {
+ 
+                if (!lastStartTask || lastStartTask.technicien.id !== user.id) {
                     throw new BadRequestException('Seul le technicien ayant démarré la tâche peut la clôturer.');
                 }
                 task.statut = TaskStatus.COMPLETED;
                 type = HistoriqueType.END_TASK;
                 break;
-
+ 
             default:
                 throw new BadRequestException('Invalid action');
         }
-
+ 
         await this.tacheRepo.save(task);
-
+ 
         if (task.ordreReparation) {
             await this.ordreReparationService.updateStatutOR(task.ordreReparation.id);
         }
-
+ 
         const historique = this.historiqueRepo.create({
             technicien: user,
             task,
             type,
             heure: now,
         });
-
+ 
         return this.historiqueRepo.save(historique);
     }
 
