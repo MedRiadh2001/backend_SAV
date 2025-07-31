@@ -45,16 +45,16 @@ export class OrdreReparationBackofficeController {
     @ApiQuery({ name: 'keyword', required: false })
     @ApiQuery({ name: 'startDate', required: false, description: 'Date de début (YYYY-MM-DD)' })
     @ApiQuery({ name: 'endDate', required: false, description: 'Date de fin (YYYY-MM-DD), aujourd\'hui par défaut si manquant' })
-    @ApiQuery({name: 'OrStatut', required: false, description: 'Statut de l\'OR'})
+    @ApiQuery({name: 'OrStatuts', required: false, description: 'Statuts multiples (COMPLETED | NOT_STARTED | IN_PROGRESS)', isArray: true, enum: OrStatus})
     findAll(
         @Query('page') page?: number,
         @Query('items') items?: number,
         @Query('keyword') keyword?: string,
         @Query('startDate') startDate?: string,
         @Query('endDate') endDate?: string,
-        @Query('OrStatut') OrStatus?: OrStatus
+        @Query('OrStatuts') OrStatuts?: string[]
     ) {
-        return this.ORService.findAll(page, items, keyword, startDate, endDate, OrStatus);
+        return this.ORService.findAll(page, items, keyword, startDate, endDate, OrStatuts);
     }
 
 
