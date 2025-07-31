@@ -22,10 +22,10 @@ export class UserController {
     @ApiOperation({ summary: 'Lister tous les utilisateurs' })
     @ApiQuery({ name: 'page', required: false })
     @ApiQuery({ name: 'items', required: false })
-    @ApiQuery({ name: 'roleId', required: false })
+    @ApiQuery({ name: 'isTechnician', required: false })
     @ApiQuery({ name: 'keyword', required: false })
-    findAll(@Query('page') page?: number, @Query('items') items?: number, @Query('roleId', new ParseUUIDPipe({ optional: true })) roleId?: string, @Query('keyword') keyword?: string) {
-        return this.userService.findAll(page, items, roleId, keyword);
+    findAll(@Query('page') page?: number, @Query('items') items?: number, @Query('isTechnician') isTechnician?: boolean, @Query('keyword') keyword?: string) {
+        return this.userService.findAll(page, items, isTechnician, keyword);
     }
 
     @Get('export')

@@ -26,6 +26,7 @@ export class UserService {
             lastName: dto.lastName,
             firstName: dto.firstName,
             role,
+            isTechnician: dto.isTechnician,
             badgeId: dto.badgeId,
         });
         return this.userRepo.save(user);
@@ -58,15 +59,15 @@ export class UserService {
         };
     }
 
-    async findAll(page = 1, items = 10, roleId?: string, keyword?: string) {
+    async findAll(page = 1, items = 10, isTechnician?: boolean, keyword?: string) {
         const query = this.userRepo
             .createQueryBuilder('user')
             .leftJoinAndSelect('user.role', 'role')
             .leftJoinAndSelect('role.rolePermissions', 'rolePermissions')
             .leftJoinAndSelect('rolePermissions.permission', 'permission');
 
-        if (roleId) {
-            query.andWhere('role.id = :roleId', { roleId });
+        if (isTechnician!==undefined) {
+            query.andWhere('user.isTechnician = :isTechnician', { isTechnician });
         }
 
         if (keyword) {

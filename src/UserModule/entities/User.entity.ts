@@ -3,6 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Role } from '../../RolePermissionModule/entities/Role.entity';
 import { UserStatus } from '../types/enums/UserStatus.enum';
 import { IUser } from '../types/interfaces/IUser.interface';
+import { IRole } from 'src/RolePermissionModule/types/interfaces/IRole.interface';
 
 @Entity()
 export class User implements IUser {
@@ -36,7 +37,10 @@ export class User implements IUser {
 
     @ManyToOne(() => Role, (role) => role.users, { eager: false })
     @ApiProperty({ type: () => Role })
-    role: Role;
+    role: IRole;
+
+    @Column({ default: false })
+    isTechnician: boolean;
 
     @CreateDateColumn()
     createdAt: Date;
