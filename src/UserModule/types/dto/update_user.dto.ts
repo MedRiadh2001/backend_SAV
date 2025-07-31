@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsEnum, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsBoolean, IsEnum, IsOptional, IsString, IsUUID } from "class-validator";
 import { UserStatus } from "../enums/UserStatus.enum";
 
 export class UpdateUserDto {
@@ -22,4 +22,9 @@ export class UpdateUserDto {
     @IsOptional()
     @IsUUID()
     roleId?: string;
+
+    @ApiPropertyOptional({ description: 'Déterminer si l\'utilisateur est un technicien ou non' })
+    @IsOptional()
+    @IsBoolean()
+    isTechnician: boolean;
 }

@@ -66,7 +66,7 @@ export class UserService {
             .leftJoinAndSelect('role.rolePermissions', 'rolePermissions')
             .leftJoinAndSelect('rolePermissions.permission', 'permission');
 
-        if (isTechnician!==undefined) {
+        if (isTechnician !== undefined) {
             query.andWhere('user.isTechnician = :isTechnician', { isTechnician });
         }
 
@@ -108,11 +108,12 @@ export class UserService {
         const user = await this.userRepo.findOneBy({ id });
         if (!user) throw new NotFoundException('User not found');
         const role = await this.roleRepo.findOneBy({ id: dto.roleId });
-        const { lastName, firstName, statut, roleId } = dto
+        const { lastName, firstName, statut, roleId, isTechnician } = dto
         if (lastName) { user.lastName = dto.lastName; }
         if (firstName) { user.firstName = dto.firstName }
         if (statut) { user.statut = dto.statut }
         if (roleId) { user.role = role };
+        if (isTechnician !== undefined) { user.isTechnician = isTechnician }
         return this.userRepo.save(user);
     }
 
