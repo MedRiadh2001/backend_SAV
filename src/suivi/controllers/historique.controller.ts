@@ -46,7 +46,7 @@ export class HistoriqueBackofficeController {
     @ApiOperation({ summary: 'Lister tous les historiques groupés par technicien (SQL GROUP BY)' })
     @ApiQuery({ name: 'startDate', required: false, description: 'Date de début (YYYY-MM-DD)' })
     @ApiQuery({ name: 'endDate', required: false, description: 'Date de fin (YYYY-MM-DD), aujourd’hui par défaut si manquant' })
-    findAllGrouped(
+    findAllTechniciansActivity(
         @Query('startDate') startDate?: string,
         @Query('endDate') endDate?: string,
     ) {
