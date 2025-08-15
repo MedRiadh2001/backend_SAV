@@ -20,6 +20,10 @@ export class Configuration implements IConfiguration {
     @ApiProperty()
     onlyCreatorEndTask: boolean;
 
+    @Column({ default: false })
+    @ApiProperty()
+    restartTask: boolean;
+
     @CreateDateColumn()
     createdAt: Date;
 

@@ -103,11 +103,34 @@ export class HistoriqueService {
         const action = dto.action;
         switch (action) {
             case 'START_TASK':
+                if (task.statut === TaskStatus.COMPLETED) {
+                    if (!config.restartTask) {
+                        throw new BadRequestException('Cette tâche est terminée et ne peut pas être recommencée.');
+                    } else {
+                        type = HistoriqueType.TASK_RESTART;
+                        task.statut = TaskStatus.IN_PROGRESS;
+
+                        await this.tacheRepo.save(task);
+                        if (task.ordreReparation) {
+                            await this.ordreReparationService.updateStatutOR(task.ordreReparation.id);
+                        }
+
+                        const historiqueRestart = this.historiqueRepo.create({
+                            technicien: user,
+                            task,
+                            type,
+                            heure: now,
+                        });
+
+                        return this.historiqueRepo.save(historiqueRestart);
+                    }
+                }
+
                 if (
                     !(
                         task.statut === TaskStatus.NOT_STARTED ||
                         task.statut === TaskStatus.PAUSED ||
-                        (task.statut === TaskStatus.IN_PROGRESS && config.multiTechniciansPerTask!==undefined)
+                        (task.statut === TaskStatus.IN_PROGRESS && config.multiTechniciansPerTask !== undefined)
                     )
                 ) {
                     throw new BadRequestException('Task already in progress or finished');
@@ -134,7 +157,7 @@ export class HistoriqueService {
                         });
 
                         const isSameTask = lastStart.task.id === dto.tacheId;
-                        
+
                         const taskEnded = lastStart.task.statut === TaskStatus.COMPLETED
 
                         if (!lastEnd && !isSameTask && !taskEnded) {
@@ -165,7 +188,7 @@ export class HistoriqueService {
                     throw new BadRequestException('Vous avez déjà rejoint cette tâche.');
                 }
 
-                if (config.multiTechniciansPerTask===false) {
+                if (config.multiTechniciansPerTask === false) {
                     const autreTechnicien = await this.historiqueRepo.findOne({
                         where: {
                             task: { id: dto.tacheId },

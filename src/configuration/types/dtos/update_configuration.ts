@@ -16,4 +16,9 @@ export class UpdateConfigurationDto {
     @IsBoolean()
     @ApiPropertyOptional({ description: 'Seul le créateur de la tâche peut la clôturer' })
     onlyCreatorEndTask?: boolean;
+
+    @IsOptional()
+    @IsBoolean()
+    @ApiPropertyOptional({ description: 'Permet de recommencer une tâche' })
+    restartTask?: boolean;
 }
