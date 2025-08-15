@@ -7,4 +7,5 @@ export enum HistoriqueType  {
     END_TASK = 'END_TASK',
     TASK_PAUSED = 'TASK_PAUSED',
     TASK_RESUME = 'TASK_RESUME',
+    JOIN_TASK = 'JOIN_TASK'
 }
