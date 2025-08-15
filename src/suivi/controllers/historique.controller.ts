@@ -42,6 +42,17 @@ export class HistoriqueBackofficeController {
         return this.historiqueService.findAll(id, startDate, endDate);
     }
 
+    @Get('activity')
+    @ApiOperation({ summary: 'Lister tous les historiques groupés par technicien (SQL GROUP BY)' })
+    @ApiQuery({ name: 'startDate', required: false, description: 'Date de début (YYYY-MM-DD)' })
+    @ApiQuery({ name: 'endDate', required: false, description: 'Date de fin (YYYY-MM-DD), aujourd’hui par défaut si manquant' })
+    findAllGrouped(
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string,
+    ) {
+        return this.historiqueService.findAllTechniciansActivity(startDate, endDate);
+    }
+
     // @Get('activity/all/:technicienId')
     // @ApiOperation({ summary: "Lister l'historique d'un technicien" })
     // findByTechnicien(@Param('technicienId', new ParseUUIDPipe()) id: string) {

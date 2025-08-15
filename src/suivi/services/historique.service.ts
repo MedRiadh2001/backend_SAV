@@ -86,16 +86,16 @@ export class HistoriqueService {
         if (!user || user.role.name.toLowerCase() !== 'technicien') {
             throw new ForbiddenException();
         }
- 
+
         const task = await this.tacheRepo.findOne({
             where: { id: dto.tacheId },
             relations: ['ordreReparation'],
         });
         if (!task) throw new NotFoundException('Tâche non trouvée');
- 
+
         let type: HistoriqueType;
         const now = new Date();
- 
+
         const action = dto.action;
         switch (action) {
             case 'START_TASK':
@@ -107,7 +107,7 @@ export class HistoriqueService {
                     order: { heure: 'DESC' },
                     relations: ['task'],
                 });
- 
+
                 if (lastStart) {
                     const lastEnd = await this.historiqueRepo.findOne({
                         where: {
@@ -117,14 +117,14 @@ export class HistoriqueService {
                             heure: MoreThan(lastStart.heure),
                         },
                     });
- 
+
                     const isSameTask = lastStart.task.id === dto.tacheId;
- 
+
                     if (!lastEnd && !isSameTask) {
                         throw new BadRequestException('Ce technicien a déjà une tâche en cours.');
                     }
                 }
- 
+
                 if (task.statut === TaskStatus.NOT_STARTED) {
                     type = HistoriqueType.WORKING;
                 } else if (task.statut === TaskStatus.PAUSED) {
@@ -134,7 +134,7 @@ export class HistoriqueService {
                 }
                 task.statut = TaskStatus.IN_PROGRESS;
                 break;
- 
+
             case 'PAUSE_TASK':
                 if (task.statut !== TaskStatus.IN_PROGRESS) {
                     throw new BadRequestException('Task must be in progress to pause it');
@@ -142,7 +142,7 @@ export class HistoriqueService {
                 task.statut = TaskStatus.PAUSED;
                 type = HistoriqueType.TASK_PAUSED;
                 break;
- 
+
             case 'END_TASK':
                 if (task.statut !== TaskStatus.IN_PROGRESS) {
                     throw new BadRequestException('Task must be in progress to finish it');
@@ -155,31 +155,31 @@ export class HistoriqueService {
                     order: { heure: 'DESC' },
                     relations: ['technicien'],
                 });
- 
+
                 if (!lastStartTask || lastStartTask.technicien.id !== user.id) {
                     throw new BadRequestException('Seul le technicien ayant démarré la tâche peut la clôturer.');
                 }
                 task.statut = TaskStatus.COMPLETED;
                 type = HistoriqueType.END_TASK;
                 break;
- 
+
             default:
                 throw new BadRequestException('Invalid action');
         }
- 
+
         await this.tacheRepo.save(task);
- 
+
         if (task.ordreReparation) {
             await this.ordreReparationService.updateStatutOR(task.ordreReparation.id);
         }
- 
+
         const historique = this.historiqueRepo.create({
             technicien: user,
             task,
             type,
             heure: now,
         });
- 
+
         return this.historiqueRepo.save(historique);
     }
 
@@ -188,7 +188,7 @@ export class HistoriqueService {
         if (!user) {
             throw new BadRequestException('user not found')
         }
-        
+
         const whereClause: any = {
             technicien: { id: user.id },
         };
@@ -222,6 +222,54 @@ export class HistoriqueService {
             relations: ['technicien', 'task'],
             order: { heure: 'ASC' }
         })
+    }
+
+    async findAllTechniciansActivity(startDate?: string, endDate?: string) {
+        const qb = this.historiqueRepo
+            .createQueryBuilder('historique')
+            .select(`json_build_object(
+        'id', technicien.id,
+        'firstName', technicien."firstName",
+        'lastName', technicien."lastName",
+        'badgeId', technicien."badgeId"
+    )`, 'technicien')
+            .addSelect(`json_agg(
+      json_build_object(
+        'id', historique.id,
+        'type', historique.type,
+        'heure', historique.heure,
+        'task', json_build_object(
+            'id', task.id,
+            'titre', task.titre,
+            'status', task.statut,
+            'ordreReparation', json_build_object(
+                'id', "ordreReparation".id,
+                'numOr', "ordreReparation"."numOR"
+            )
+        )
+      ) ORDER BY historique.heure
+    )`, 'historiques')
+            .leftJoin('historique.technicien', 'technicien')
+            .leftJoin('historique.task', 'task')
+            .leftJoin('task.ordreReparation', 'ordreReparation')
+            .groupBy('technicien.id, technicien.firstName, technicien.lastName, technicien.badgeId')
+            .orderBy('technicien.firstName', 'ASC');
+
+        if (startDate) {
+            const start = new Date(startDate);
+            start.setHours(0, 0, 0, 0);
+
+            const end = endDate ? new Date(endDate) : new Date();
+            end.setHours(23, 59, 59, 999);
+
+            if (start > end) {
+                throw new BadRequestException('startDate ne peut pas être après endDate.');
+            }
+
+            qb.where('historique.heure BETWEEN :start AND :end', { start, end });
+        }
+
+        return qb.getRawMany();
     }
 
     // async findByTechnicienToday(id: string) {
